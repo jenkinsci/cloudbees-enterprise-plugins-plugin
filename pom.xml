@@ -12,8 +12,17 @@
   <artifactId>cloudbees-free-plugins</artifactId>
   <packaging>hpi</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>CloudBees Free Plugins</name>
-  <!-- TODO: <url></url> -->
+  <name>CloudBees Plugin Gateway</name>
+
+  <description>
+    The CloudBees Plugin Gateway installs free enterprise plugins from CloudBees.
+    Installing this plugin automatically installs "Folders and Backup To Cloud plugin".
+    The "Folders" plugin allows you to nest jobs in hierarchical folders &amp; simplifies job organization.
+    The "Backup To Cloud" plugin backs up Jenkins configuration to CloudBees, thus obviating the need to setup
+    separate hardware to backup. Note: You will be asked to register for a free CloudBees account before you can
+    use these plugins.
+  </description>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Plugin+Gateway+Plugin</url>
 
   <build>
     <plugins>
