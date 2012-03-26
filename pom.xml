@@ -9,7 +9,7 @@
     <relativePath></relativePath>
   </parent>
 
-  <artifactId>cloudbees-free-plugins</artifactId>
+  <artifactId>cloudbees-plugin-gateway</artifactId>
   <packaging>hpi</packaging>
   <version>0.1-SNAPSHOT</version>
   <name>CloudBees Plugin Gateway</name>
