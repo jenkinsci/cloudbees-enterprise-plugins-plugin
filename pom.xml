@@ -16,11 +16,13 @@
 
   <description>
     The CloudBees Plugin Gateway installs free enterprise plugins from CloudBees.
-    Installing this plugin automatically installs "Folders and Backup To Cloud plugin".
+    Installing this plugin automatically installs "Folders" and "Backup To Cloud" plugins.
     The "Folders" plugin allows you to nest jobs in hierarchical folders &amp; simplifies job organization.
     The "Backup To Cloud" plugin backs up Jenkins configuration to CloudBees, thus obviating the need to setup
     separate hardware to backup. Note: You will be asked to register for a free CloudBees account before you can
-    use these plugins.
+    use these plugins.&lt;br/&gt;
+    For Jenkins 1.442 and newer, this plugin can be installed without restart, but will require a restart to complete
+    installation. For Jenksin 1.441 and earlier, this plugin will require two restarts to complete installation.
   </description>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Plugin+Gateway+Plugin</url>
 
