@@ -1,7 +1,6 @@
 package com.cloudbees.jenkins.plugins.freeplugins;
 
 import hudson.Extension;
-import hudson.model.Hudson;
 import hudson.model.PageDecorator;
 import hudson.model.RootAction;
 import org.jvnet.localizer.Localizable;
@@ -24,10 +23,14 @@ public class Notice extends PageDecorator {
         return PluginImpl.getStatus();
     }
 
+    public boolean isImportant() {
+        return PluginImpl.isStatusImportant();
+    }
+
     public static Notice getInstanceOrDie() {
-        for (PageDecorator decorator: PageDecorator.all()) {
+        for (PageDecorator decorator : PageDecorator.all()) {
             if (decorator instanceof Notice) {
-                return (Notice)decorator;
+                return (Notice) decorator;
             }
         }
         throw new AssertionError(Notice.class + " is missing from the extension list");

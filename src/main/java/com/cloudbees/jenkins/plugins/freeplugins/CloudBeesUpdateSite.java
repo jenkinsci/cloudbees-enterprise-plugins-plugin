@@ -5,7 +5,6 @@ import hudson.model.Hudson;
 import hudson.model.UpdateSite;
 import hudson.util.FormValidation;
 import hudson.util.TextFile;
-import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -225,7 +224,7 @@ public class CloudBeesUpdateSite extends UpdateSite {
                     try {
                         c.checkValidity();
                     } catch (CertificateExpiredException e) { // even if the certificate isn't valid yet,
-                    // we'll proceed it anyway
+                        // we'll proceed it anyway
                         warning = FormValidation.warning(e,
                                 String.format("Certificate %s has expired in update center '%s'", cert.toString(),
                                         getId()));
@@ -239,7 +238,7 @@ public class CloudBeesUpdateSite extends UpdateSite {
 
                 // all default root CAs in JVM are trusted, plus certs bundled in Jenkins
                 Set<TrustAnchor> anchors = new HashSet<TrustAnchor>(); // CertificateUtil.getDefaultRootCAs();
-                ServletContext context = Jenkins.getInstance().servletContext;
+                ServletContext context = Hudson.getInstance().servletContext;
                 anchors.add(new TrustAnchor(loadLicenseCaCertificate(), null));
                 for (String cert : (Set<String>) context.getResourcePaths("/WEB-INF/update-center-rootCAs")) {
                     if (cert.endsWith(".txt")) {

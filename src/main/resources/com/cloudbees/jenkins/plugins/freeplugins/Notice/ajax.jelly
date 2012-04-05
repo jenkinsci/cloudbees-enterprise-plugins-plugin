@@ -1,7 +1,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
   <l:ajax>
-    <div style="width:100%; height:40px; overflow:hidden; background-color: #fcaf3e; border-bottom: solid 1px black;"
+    <div style="width:100%; height:40px; overflow:hidden; background-color: ${it.important?'#f57900':'#73d216'};"
             id="freeplugins-notice-content">
     <table width="100%" style="border-spacing:2px; position:relative; height:40px">
       <tr>

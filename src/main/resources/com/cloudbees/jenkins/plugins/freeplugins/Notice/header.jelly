@@ -1,23 +1,43 @@
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
   <j:if test="${it.nagDue}">
     <div style="display:none" id="freeplugins-notice">
       <st:include page="ajax.jelly"/>
     </div>
     <script>
-      YAHOO.util.Event.on(window, 'load', function() {
-        window.setTimeout(function() {
+      function refreshNoticeNode(id,url) {
+          var f = function() {
+              new Ajax.Request(url, {
+                  onSuccess: function(rsp) {
+                      var p = document.getElementById(id);
+                      p.innerHTML = rsp.responseText;
+                      try {
+                          refreshNoticeNode(id,url);
+                      } catch (e) {
+                          window.location.reload();
+                      }
+                  },
+                  onFailure: function(rsp) {
+                    window.setTimeout(function(){
+                      window.location.reload();
+                    }, 30000)
+                  }
+              });
+          };
+          window.setTimeout(f, 1000);
+      }
+      YAHOO.util.Event.on(window, 'load', function () {
+        window.setTimeout(function () {
           var header = document.getElementById("header");
           var ad = document.getElementById("freeplugins-notice").firstChild;
-          var adb = ad.firstChild;
           ad.parentNode.removeChild(ad);
           if (header.nextSibling === null) {
             header.parentNode.appendChild(ad);
           } else {
             header.parentNode.insertBefore(ad, header.nextSibling);
           }
+          refreshNoticeNode("freeplugins-notice-content", "${rootUrl}${it.class.name}/instance/ajax");
         }, 1);
       });
-      refreshPart("freeplugins-notice-content", "${rootUrl}${it.class.name}/instance/ajax");
     </script>
   </j:if>
 </j:jelly>

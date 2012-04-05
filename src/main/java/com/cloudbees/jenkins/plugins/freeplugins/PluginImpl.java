@@ -12,7 +12,6 @@ import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.util.PersistedList;
 import hudson.util.TimeUnit2;
-import jenkins.model.Jenkins;
 import org.jvnet.hudson.reactor.Milestone;
 import org.jvnet.localizer.Localizable;
 
@@ -48,7 +47,7 @@ public class PluginImpl extends Plugin {
             "http://nectar-updates.cloudbees.com/update-center.json"
     ));
 
-    private static final String CLOUDBEES_UPDATE_CENTER_ID = "cloudbees.proprietary";
+    private static final String CLOUDBEES_UPDATE_CENTER_ID = "cloudbees-proprietary";
 
     private static final Set<String> cloudBeesUpdateCenterIds = new HashSet<String>(Arrays.asList(
             CLOUDBEES_UPDATE_CENTER_ID,
@@ -68,8 +67,14 @@ public class PluginImpl extends Plugin {
 
     private static volatile Localizable status = null;
 
+    private static volatile boolean statusImportant = false;
+
     public static Localizable getStatus() {
         return status;
+    }
+
+    public static boolean isStatusImportant() {
+        return statusImportant;
     }
 
     @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = "cloudbees-update-center-configured")
@@ -132,21 +137,11 @@ public class PluginImpl extends Plugin {
             PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId);
             if (plugin == null) {
                 UpdateSite.Plugin p =
-                        remainderPending ? null : Jenkins.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
+                        remainderPending ? null : Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
                 if (p == null) {
                     synchronized (pendingPluginInstalls) {
                         pendingPluginInstalls.add(pluginArtifactId);
                         remainderPending = true;
-                    }
-                } else {
-                    LOGGER.info("Installing CloudBees plugin: " + pluginArtifactId);
-                    try {
-                        p.deploy();
-                        LOGGER.info("Installed CloudBees plugin: " + pluginArtifactId);
-                    } catch (Throwable e) {
-                        synchronized (pendingPluginInstalls) {
-                            pendingPluginInstalls.add(pluginArtifactId);
-                        }
                     }
                 }
             }
@@ -176,7 +171,7 @@ public class PluginImpl extends Plugin {
                     LOGGER.fine("Background thread for core plugin installation awake");
                     try {
                         UpdateSite cloudbeesSite =
-                                Jenkins.getInstance().getUpdateCenter().getSite(CLOUDBEES_UPDATE_CENTER_ID);
+                                Hudson.getInstance().getUpdateCenter().getSite(CLOUDBEES_UPDATE_CENTER_ID);
                         if (cloudbeesSite.getDataTimestamp() > -1) {
                             loop = progressPluginInstalls(cloudbeesSite);
                         } else {
@@ -195,9 +190,15 @@ public class PluginImpl extends Plugin {
                     }
                 }
                 if (!loop) {
+                    statusImportant = true;
                     try {
                         status = Messages._Notice_scheduledRestart();
-                        Jenkins.getInstance().safeRestart();
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            // ignore
+                        }
+                        Hudson.getInstance().safeRestart();
                     } catch (RestartNotSupportedException exception) {
                         // ignore if restart is not allowed
                         status = Messages._Notice_restartRequired();
@@ -218,7 +219,7 @@ public class PluginImpl extends Plugin {
                 while (!pendingPluginInstalls.isEmpty()) {
                     String pluginArtifactId = pendingPluginInstalls.get(0);
                     UpdateSite.Plugin p =
-                            Jenkins.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
+                            Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
                     if (p == null) {
                         if (System.currentTimeMillis() > nextWarning) {
                             LOGGER.log(Level.WARNING,
@@ -234,7 +235,7 @@ public class PluginImpl extends Plugin {
                         nextWarning = 0;
                     } else {
                         LOGGER.info("Installing CloudBees plugin: " + pluginArtifactId);
-                        status = Messages._Notice_installingPlugin();
+                        status = Messages._Notice_installingPlugin(p.getDisplayName());
                         try {
                             p.deploy().get();
                             LOGGER.info("Installed CloudBees plugin: " + pluginArtifactId);
