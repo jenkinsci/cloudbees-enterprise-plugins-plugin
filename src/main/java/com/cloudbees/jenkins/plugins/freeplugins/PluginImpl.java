@@ -40,20 +40,16 @@ public class PluginImpl extends Plugin {
     private static final Logger LOGGER = Logger.getLogger(PluginImpl.class.getName());
 
     private static final String CLOUDBEES_UPDATE_CENTER_URL =
-            "http://jenkins-updates.cloudbees.com/update-center.json";
+            "http://jenkins-updates.apps.cloudbees.com/update-center/cloudbees-proprietary/update-center.json";
 
     private static final Set<String> cloudBeesUpdateCenterUrls = new HashSet<String>(Arrays.asList(
-            CLOUDBEES_UPDATE_CENTER_URL,
-            "http://nectar-updates.cloudbees.com/updateCenter/1.424/update-center.json",
-            "http://nectar-updates.cloudbees.com/updateCenter/1.400/update-center.json",
-            "http://nectar-updates.cloudbees.com/update-center.json"
+            CLOUDBEES_UPDATE_CENTER_URL
     ));
 
     private static final String CLOUDBEES_UPDATE_CENTER_ID = "cloudbees-proprietary";
 
     private static final Set<String> cloudBeesUpdateCenterIds = new HashSet<String>(Arrays.asList(
-            CLOUDBEES_UPDATE_CENTER_ID,
-            "ichci"
+            CLOUDBEES_UPDATE_CENTER_ID
     ));
 
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
@@ -78,24 +74,54 @@ public class PluginImpl extends Plugin {
 
     private static volatile boolean statusImportant = false;
 
-    private boolean installed = false;
+    private String installedVersion = null;
 
     public PluginImpl() {
+    }
+
+    @Override
+    public void start() throws Exception {
+        LOGGER.log(Level.INFO, "Started...");
         try {
             load();
         } catch (Throwable e) {
             LOGGER.log(Level.WARNING, "Could not deserialize state, assuming the plugins need re-installation", e);
-            installed = false;
+            installedVersion = null;
         }
     }
 
     public boolean isInstalled() {
-        return installed;
+        if (installedVersion == null) {
+            return false;
+        }
+        try {
+            PluginWrapper pluginWrapper = Hudson.getInstance().getPluginManager().getPlugin(getClass());
+            String targetVersion = getVersionString(pluginWrapper);
+            LOGGER.log(Level.FINE, "Installed version = {0}. Target version = {1}",
+                    new Object[]{installedVersion, targetVersion});
+            return !new VersionNumber(installedVersion).isOlderThan(new VersionNumber(targetVersion));
+        } catch (Throwable t) {
+            // if in doubt, it's not installed
+            return false;
+        }
     }
 
     public void setInstalled(boolean installed) {
-        if (installed != this.installed) {
-            this.installed = installed;
+        boolean changed = false;
+        if (installed) {
+            PluginWrapper pluginWrapper = Hudson.getInstance().getPluginManager().getPlugin(getClass());
+            String version = getVersionString(pluginWrapper);
+            if (!version.equals(installedVersion)) {
+                this.installedVersion = version;
+                changed = true;
+            }
+        } else {
+            if (installedVersion != null) {
+                installedVersion = null;
+                changed = true;
+            }
+        }
+        if (changed) {
             try {
                 save();
             } catch (IOException e) {
@@ -105,6 +131,13 @@ public class PluginImpl extends Plugin {
                         e);
             }
         }
+    }
+
+    private String getVersionString(PluginWrapper pluginWrapper) {
+        String version = pluginWrapper.getVersionNumber().toString();
+        int i = version.indexOf(' ');
+        version = i == -1 ? version : version.substring(0, i);
+        return version;
     }
 
     public static Localizable getStatus() {
@@ -117,6 +150,7 @@ public class PluginImpl extends Plugin {
 
     @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = "cloudbees-update-center-configured")
     public static void addUpdateCenter() throws Exception {
+        LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
         UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
         PersistedList<UpdateSite> sites = updateCenter.getSites();
         if (sites.isEmpty()) {
@@ -170,17 +204,19 @@ public class PluginImpl extends Plugin {
 
     @Initializer(requires = "cloudbees-update-center-configured")
     public static void installCorePlugins() {
+        LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
             LOGGER.info("Core plugins installation previously completed, will not check or reinstall");
             return;
         }
         for (Dependency pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
+            LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
             PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
             if (plugin == null && !pluginArtifactId.optional) {
                 // not installed and mandatory
                 scheduleInstall(pluginArtifactId);
-            } else if (plugin != null && pluginArtifactId.version != null) {
+            } else if (plugin != null && (pluginArtifactId.version != null || plugin.getVersion() == null)) {
                 // already installed
                 if (plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
                     // but older version
@@ -197,6 +233,8 @@ public class PluginImpl extends Plugin {
                 worker = new DelayedInstaller();
                 worker.setDaemon(true);
                 worker.start();
+            } else {
+                LOGGER.log(Level.INFO, "Nothing to do");
             }
         }
         if (finished && instance != null) {
@@ -205,11 +243,9 @@ public class PluginImpl extends Plugin {
     }
 
     private static void scheduleInstall(Dependency pluginArtifactId) {
-        UpdateSite.Plugin p = Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId.name);
-        if (p == null) {
-            synchronized (pendingPluginInstalls) {
-                pendingPluginInstalls.add(pluginArtifactId);
-            }
+        synchronized (pendingPluginInstalls) {
+            LOGGER.log(Level.FINE, "Scheduling installation of {0}", pluginArtifactId.name);
+            pendingPluginInstalls.add(pluginArtifactId);
         }
     }
 
