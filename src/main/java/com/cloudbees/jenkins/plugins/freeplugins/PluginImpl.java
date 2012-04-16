@@ -12,9 +12,11 @@ import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.util.PersistedList;
 import hudson.util.TimeUnit2;
+import hudson.util.VersionNumber;
 import org.jvnet.hudson.reactor.Milestone;
 import org.jvnet.localizer.Localizable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -54,11 +56,18 @@ public class PluginImpl extends Plugin {
             "ichci"
     ));
 
-    private static final String[] CLOUDBEES_FREE_PLUGINS = {
-            "free-license",
+    private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
+            require("cloudbees-credentials"),
+            require("cloudbees-registration"),
+            require("cloudbees-license", "2.6"),
+            require("free-license", "1.3"),
+            optional("nectar-license", "2.6"),
+            require("cloudbees-folder", "2.1"),
+            require("cloudbees-cloud-backup"),
+            require("cloudbees-wasted-minutes-tracker")
     };
 
-    private static final List<String> pendingPluginInstalls = new ArrayList<String>();
+    private static final List<Dependency> pendingPluginInstalls = new ArrayList<Dependency>();
 
     /**
      * Guarded by {@link #pendingPluginInstalls}.
@@ -68,6 +77,35 @@ public class PluginImpl extends Plugin {
     private static volatile Localizable status = null;
 
     private static volatile boolean statusImportant = false;
+
+    private boolean installed = false;
+
+    public PluginImpl() {
+        try {
+            load();
+        } catch (Throwable e) {
+            LOGGER.log(Level.WARNING, "Could not deserialize state, assuming the plugins need re-installation", e);
+            installed = false;
+        }
+    }
+
+    public boolean isInstalled() {
+        return installed;
+    }
+
+    public void setInstalled(boolean installed) {
+        if (installed != this.installed) {
+            this.installed = installed;
+            try {
+                save();
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING,
+                        "Could not serialize state. If any of the free plugins are uninstalled, "
+                                + "they may be reinstalled on next restart.",
+                        e);
+            }
+        }
+    }
 
     public static Localizable getStatus() {
         return status;
@@ -132,27 +170,45 @@ public class PluginImpl extends Plugin {
 
     @Initializer(requires = "cloudbees-update-center-configured")
     public static void installCorePlugins() {
-        boolean remainderPending = false;
-        for (String pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
-            PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId);
-            if (plugin == null) {
-                UpdateSite.Plugin p =
-                        remainderPending ? null : Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
-                if (p == null) {
-                    synchronized (pendingPluginInstalls) {
-                        pendingPluginInstalls.add(pluginArtifactId);
-                        remainderPending = true;
-                    }
+        PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+        if (instance != null && instance.isInstalled()) {
+            LOGGER.info("Core plugins installation previously completed, will not check or reinstall");
+            return;
+        }
+        for (Dependency pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
+            PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+            if (plugin == null && !pluginArtifactId.optional) {
+                // not installed and mandatory
+                scheduleInstall(pluginArtifactId);
+            } else if (plugin != null && pluginArtifactId.version != null) {
+                // already installed
+                if (plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
+                    // but older version
+                    scheduleInstall(pluginArtifactId);
                 }
             }
         }
+        boolean finished;
         synchronized (pendingPluginInstalls) {
-            if (!pendingPluginInstalls.isEmpty() && (worker == null || !worker.isAlive())) {
+            finished = pendingPluginInstalls.isEmpty();
+            if (!finished && (worker == null || !worker.isAlive())) {
                 status = Messages._Notice_downloadUCMetadata();
                 LOGGER.info("Starting background thread for core plugin installation");
                 worker = new DelayedInstaller();
                 worker.setDaemon(true);
                 worker.start();
+            }
+        }
+        if (finished && instance != null) {
+            instance.setInstalled(true);
+        }
+    }
+
+    private static void scheduleInstall(Dependency pluginArtifactId) {
+        UpdateSite.Plugin p = Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId.name);
+        if (p == null) {
+            synchronized (pendingPluginInstalls) {
+                pendingPluginInstalls.add(pluginArtifactId);
             }
         }
     }
@@ -206,10 +262,16 @@ public class PluginImpl extends Plugin {
                 }
             } finally {
                 LOGGER.info("Background thread for core plugin installation finished.");
+                boolean finished;
                 synchronized (pendingPluginInstalls) {
                     if (worker == this) {
                         worker = null;
                     }
+                    finished = pendingPluginInstalls.isEmpty();
+                }
+                PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+                if (finished && instance != null) {
+                    instance.setInstalled(true);
                 }
             }
         }
@@ -217,22 +279,38 @@ public class PluginImpl extends Plugin {
         private boolean progressPluginInstalls(UpdateSite cloudbeesSite) {
             synchronized (pendingPluginInstalls) {
                 while (!pendingPluginInstalls.isEmpty()) {
-                    String pluginArtifactId = pendingPluginInstalls.get(0);
+                    Dependency pluginArtifactId = pendingPluginInstalls.get(0);
                     UpdateSite.Plugin p =
-                            Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId);
+                            Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId.name);
                     if (p == null) {
                         if (System.currentTimeMillis() > nextWarning) {
                             LOGGER.log(Level.WARNING,
                                     "Cannot find core plugin {0}, the CloudBees free plugins cannot be "
                                             + "installed without this core plugin. Will try again later.",
-                                    pluginArtifactId);
+                                    pluginArtifactId.name);
                             nextWarning = System.currentTimeMillis() + TimeUnit2.HOURS.toMillis(1);
                         }
                         break;
                     } else if (p.getInstalled() != null && p.getInstalled().isEnabled()) {
-                        LOGGER.info("Detected previous installation of CloudBees plugin: " + pluginArtifactId);
-                        pendingPluginInstalls.remove(0);
-                        nextWarning = 0;
+                        PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+                        if (plugin != null && plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
+                            LOGGER.info("Upgrading CloudBees plugin: " + pluginArtifactId);
+                            status = Messages._Notice_upgradingPlugin(p.getDisplayName(), p.version);
+                            try {
+                                p.deploy().get();
+                                LOGGER.info("Upgraded CloudBees plugin: " + pluginArtifactId + " to " + p.version);
+                                pendingPluginInstalls.remove(0);
+                                nextWarning = 0;
+                                status = Messages._Notice_upgradedPlugin(p.getDisplayName(), p.version);
+                            } catch (Throwable e) {
+                                // ignore
+                            }
+
+                        } else {
+                            LOGGER.info("Detected previous installation of CloudBees plugin: " + pluginArtifactId);
+                            pendingPluginInstalls.remove(0);
+                            nextWarning = 0;
+                        }
                     } else {
                         LOGGER.info("Installing CloudBees plugin: " + pluginArtifactId);
                         status = Messages._Notice_installingPlugin(p.getDisplayName());
@@ -241,6 +319,7 @@ public class PluginImpl extends Plugin {
                             LOGGER.info("Installed CloudBees plugin: " + pluginArtifactId);
                             pendingPluginInstalls.remove(0);
                             nextWarning = 0;
+                            status = Messages._Notice_installedPlugin(p.getDisplayName());
                         } catch (Throwable e) {
                             // ignore
                         }
@@ -253,5 +332,33 @@ public class PluginImpl extends Plugin {
 
     static {
         UpdateCenter.XSTREAM.alias("cloudbees", CloudBeesUpdateSite.class);
+    }
+
+    private static Dependency require(String name) {
+        return require(name, null);
+    }
+
+    private static Dependency require(String name, String version) {
+        return new Dependency(name, version, false);
+    }
+
+    private static Dependency optional(String name) {
+        return optional(name, null);
+    }
+
+    private static Dependency optional(String name, String version) {
+        return new Dependency(name, version, true);
+    }
+
+    private static class Dependency {
+        public final String name;
+        public final VersionNumber version;
+        public final boolean optional;
+
+        private Dependency(String name, String version, boolean optional) {
+            this.name = name;
+            this.version = version == null ? null : new VersionNumber(version);
+            this.optional = optional;
+        }
     }
 }
