@@ -83,7 +83,8 @@ public class PluginImpl extends Plugin {
             optional("nectar-license", "2.6"),
             require("cloudbees-folder", "2.1"),
             require("cloudbees-cloud-backup"),
-            require("cloudbees-wasted-minutes-tracker")
+            require("cloudbees-wasted-minutes-tracker"),
+            require("cloudbees-deployer-plugin", "2.0")
     };
 
     private static final List<Dependency> pendingPluginInstalls = new ArrayList<Dependency>();
@@ -339,8 +340,10 @@ public class PluginImpl extends Plugin {
             synchronized (pendingPluginInstalls) {
                 while (!pendingPluginInstalls.isEmpty()) {
                     Dependency pluginArtifactId = pendingPluginInstalls.get(0);
-                    UpdateSite.Plugin p =
-                            Hudson.getInstance().getUpdateCenter().getPlugin(pluginArtifactId.name);
+                    UpdateSite.Plugin p = Hudson.getInstance()
+                            .getUpdateCenter()
+                            .getSite(CLOUDBEES_UPDATE_CENTER_ID)
+                            .getPlugin(pluginArtifactId.name);
                     if (p == null) {
                         if (System.currentTimeMillis() > nextWarning) {
                             LOGGER.log(Level.WARNING,
@@ -353,11 +356,11 @@ public class PluginImpl extends Plugin {
                     } else if (p.getInstalled() != null && p.getInstalled().isEnabled()) {
                         PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
                         if (plugin != null && plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
-                            LOGGER.info("Upgrading CloudBees plugin: " + pluginArtifactId);
+                            LOGGER.info("Upgrading CloudBees plugin: " + pluginArtifactId.name);
                             status = Messages._Notice_upgradingPlugin(p.getDisplayName(), p.version);
                             try {
                                 p.deploy().get();
-                                LOGGER.info("Upgraded CloudBees plugin: " + pluginArtifactId + " to " + p.version);
+                                LOGGER.info("Upgraded CloudBees plugin: " + pluginArtifactId.name + " to " + p.version);
                                 pendingPluginInstalls.remove(0);
                                 nextWarning = 0;
                                 status = Messages._Notice_upgradedPlugin(p.getDisplayName(), p.version);
@@ -366,16 +369,17 @@ public class PluginImpl extends Plugin {
                             }
 
                         } else {
-                            LOGGER.info("Detected previous installation of CloudBees plugin: " + pluginArtifactId);
+                            LOGGER.info("Detected previous installation of CloudBees plugin: " + pluginArtifactId.name);
                             pendingPluginInstalls.remove(0);
                             nextWarning = 0;
                         }
                     } else {
-                        LOGGER.info("Installing CloudBees plugin: " + pluginArtifactId);
+                        LOGGER.info("Installing CloudBees plugin: " + pluginArtifactId.name + " version " + p.version);
                         status = Messages._Notice_installingPlugin(p.getDisplayName());
                         try {
                             p.deploy().get();
-                            LOGGER.info("Installed CloudBees plugin: " + pluginArtifactId);
+                            LOGGER.info(
+                                    "Installed CloudBees plugin: " + pluginArtifactId.name + " version " + p.version);
                             pendingPluginInstalls.remove(0);
                             nextWarning = 0;
                             status = Messages._Notice_installedPlugin(p.getDisplayName());
