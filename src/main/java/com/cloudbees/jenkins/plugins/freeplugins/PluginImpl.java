@@ -62,31 +62,54 @@ public class PluginImpl extends Plugin {
      */
     private static final Logger LOGGER = Logger.getLogger(PluginImpl.class.getName());
 
+    /**
+     * The current update center URL.
+     */
     private static final String CLOUDBEES_UPDATE_CENTER_URL =
-            "http://jenkins-updates.apps.cloudbees.com/update-center/cloudbees-proprietary/update-center.json";
+            "http://jenkins-updates.cloudbees.com/update-center/cloudbees-proprietary/update-center.json";
 
+    /**
+     * The current update center URL and any previous URLs that were used for the same content and should be migrated
+     * to the current one.
+     */
     private static final Set<String> cloudBeesUpdateCenterUrls = new HashSet<String>(Arrays.asList(
-            CLOUDBEES_UPDATE_CENTER_URL
+            CLOUDBEES_UPDATE_CENTER_URL,
+            "http://jenkins-updates.apps.cloudbees.com/update-center/cloudbees-proprietary/update-center.json"
     ));
 
+    /**
+     * The current update center ID.
+     */
     private static final String CLOUDBEES_UPDATE_CENTER_ID = "cloudbees-proprietary";
 
+    /**
+     * The current update center ID and any previous IDs that were used for the same content and should be migrated
+     * to the current one.
+     */
     private static final Set<String> cloudBeesUpdateCenterIds = new HashSet<String>(Arrays.asList(
             CLOUDBEES_UPDATE_CENTER_ID
     ));
 
+    /**
+     * The plugins that can and/or should be installed/upgraded.
+     */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
             require("cloudbees-credentials"),
             require("cloudbees-registration"),
-            require("cloudbees-license", "2.6"),
+            require("cloudbees-license", "2.7"),
             require("free-license", "1.3"),
-            optional("nectar-license", "2.6"),
+            optional("nectar-license", "2.7"),
             require("cloudbees-folder", "2.1"),
             require("cloudbees-cloud-backup"),
             require("cloudbees-wasted-minutes-tracker"),
             require("cloudbees-deployer-plugin", "2.0")
     };
 
+    /**
+     * The list of plugin installations that remains to be completed.
+     *
+     * Guarded by {@link #pendingPluginInstalls}.
+     */
     private static final List<Dependency> pendingPluginInstalls = new ArrayList<Dependency>();
 
     /**
@@ -94,10 +117,20 @@ public class PluginImpl extends Plugin {
      */
     private static DelayedInstaller worker = null;
 
+    /**
+     * The current status.
+     */
     private static volatile Localizable status = null;
 
+    /**
+     * Whether the current status is important.
+     */
     private static volatile boolean statusImportant = false;
 
+    /**
+     * The most recently installed version of this plugin, used to trigger whether to re-evaluate installing/upgrading
+     * the {@link #CLOUDBEES_FREE_PLUGINS}.
+     */
     private String installedVersion = null;
 
     public PluginImpl() {
