@@ -97,7 +97,7 @@ public class PluginImpl extends Plugin {
             require("cloudbees-credentials"),
             require("cloudbees-registration"),
             require("cloudbees-license", "2.8"),
-            require("free-license", "1.4"),
+            require("free-license", "1.5"),
             optional("nectar-license", "2.8"),
             require("cloudbees-folder", "2.1"),
             require("cloudbees-cloud-backup"),
