@@ -28,6 +28,7 @@ import hudson.model.Hudson;
 import hudson.model.UpdateSite;
 import hudson.util.FormValidation;
 import hudson.util.TextFile;
+import jenkins.model.Jenkins;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -111,6 +112,24 @@ public class CloudBeesUpdateSite extends UpdateSite {
      */
     public long getDataTimestamp() {
         return dataTimestamp;
+    }
+
+    @Override
+    public String getDownloadUrl() {
+        /*
+            HACKISH:
+
+            Loading scripts in HTTP from HTTPS pages cause browsers to issue a warning dialog.
+            The elegant way to solve the problem is to always load update center from HTTPS,
+            but our backend mirroring scheme isn't ready for that. So this hack serves regular
+            traffic in HTTP server, and only use HTTPS update center for Jenkins in HTTPS.
+
+            We'll monitor the traffic to see if we can sustain this added traffic.
+         */
+        String url = getUrl();
+        if (url.startsWith("http://jenkins-updates.cloudbees.com/") && Jenkins.getInstance().isRootUrlSecure())
+            return "https"+url.substring(4);
+        return url;
     }
 
 
