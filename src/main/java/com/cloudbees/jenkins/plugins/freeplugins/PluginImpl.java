@@ -102,7 +102,7 @@ public class PluginImpl extends Plugin {
             require("cloudbees-folder", "3.1.1"),
             require("cloudbees-cloud-backup", "3.1"),
             require("cloudbees-wasted-minutes-tracker", "3.1"),
-            require("cloudbees-deployer-plugin", "3.1")
+            require("cloudbees-deployer-plugin", "3.1.1")
     };
 
     /**
