@@ -107,7 +107,7 @@ public class PluginImpl extends Plugin {
 
     /**
      * The list of plugin installations that remains to be completed.
-     *
+     * <p/>
      * Guarded by {@link #pendingPluginInstalls}.
      */
     private static final List<Dependency> pendingPluginInstalls = new ArrayList<Dependency>();
@@ -398,9 +398,14 @@ public class PluginImpl extends Plugin {
                                 nextWarning = 0;
                                 status = Messages._Notice_upgradedPlugin(p.getDisplayName(), p.version);
                             } catch (Throwable e) {
-                                // ignore
+                                if (System.currentTimeMillis() > nextWarning) {
+                                    LOGGER.log(Level.WARNING,
+                                            "Cannot upgrade CloudBees plugin: " + pluginArtifactId.name + " to "
+                                                    + p.version, e);
+                                    nextWarning = System.currentTimeMillis() + TimeUnit2.MINUTES.toMillis(1);
+                                }
+                                break;
                             }
-
                         } else {
                             LOGGER.info("Detected previous installation of CloudBees plugin: " + pluginArtifactId.name);
                             pendingPluginInstalls.remove(0);
@@ -417,7 +422,13 @@ public class PluginImpl extends Plugin {
                             nextWarning = 0;
                             status = Messages._Notice_installedPlugin(p.getDisplayName());
                         } catch (Throwable e) {
-                            // ignore
+                            if (System.currentTimeMillis() > nextWarning) {
+                                LOGGER.log(Level.WARNING,
+                                        "Cannot install CloudBees plugin: " + pluginArtifactId.name + " version "
+                                                + p.version, e);
+                                nextWarning = System.currentTimeMillis() + TimeUnit2.MINUTES.toMillis(1);
+                            }
+                            break;
                         }
                     }
                 }
