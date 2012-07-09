@@ -1,0 +1,20 @@
+<div>
+  This plugin installs free enterprise plugins from CloudBees. The following plugins are automatically installed:
+  <ul>
+    <li>
+      <b>Folders:</b> easily organize your jobs
+    </li>
+    <li>
+      <b>Backup to Cloud:</b> backup your Jenkins into CloudBees cloud
+    </li>
+    <li>
+      <b>Wasted Minutes:</b> find out if you are short of slaves and need to add capacity to speed up builds
+    </li>
+    <li>
+      <b>CloudBees Status:</b> find out how much of the free CloudBees Jenkins capacity in the cloud is available for your use
+    </li>
+  </ul>
+  <b>Note:</b> You will be asked to register for a free CloudBees account to use these plugins
+  <br/>
+  (This plugin was formerly known as the CloudBees Plugin Gateway plugin)
+</div>
