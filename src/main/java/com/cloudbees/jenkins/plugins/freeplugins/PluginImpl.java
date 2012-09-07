@@ -34,9 +34,12 @@ import hudson.model.Hudson;
 import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.security.ACL;
+import hudson.triggers.SafeTimerTask;
+import hudson.triggers.Trigger;
 import hudson.util.PersistedList;
 import hudson.util.TimeUnit2;
 import hudson.util.VersionNumber;
+import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
 import org.acegisecurity.context.SecurityContextHolder;
 import org.jvnet.hudson.reactor.Milestone;
@@ -351,6 +354,14 @@ public class PluginImpl extends Plugin {
                             // ignore
                         }
                         Hudson.getInstance().safeRestart();
+                        // if the user manually cancelled the quiet down, reflect that in the status message
+                        Trigger.timer.scheduleAtFixedRate(new SafeTimerTask() {
+                            @Override
+                            protected void doRun() throws Exception {
+                                if (!Jenkins.getInstance().isQuietingDown())
+                                    status = null;
+                            }
+                        },1000,1000);
                     } catch (RestartNotSupportedException exception) {
                         // ignore if restart is not allowed
                         status = Messages._Notice_restartRequired();
