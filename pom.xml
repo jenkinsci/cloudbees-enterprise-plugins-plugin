@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>cloudbees-plugin-gateway</artifactId>
-  <version>1.11</version>
+  <version>1.12-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>CloudBees Free Enterprise Plugins</name>
