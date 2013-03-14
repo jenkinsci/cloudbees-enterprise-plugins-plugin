@@ -98,14 +98,14 @@ public class PluginImpl extends Plugin {
      */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
             require("cloudbees-credentials", "3.2").mandatory(),
-            require("cloudbees-registration", "3.3").mandatory(),
-            require("cloudbees-license", "3.3"),
-            require("free-license", "3.1.3"),
-            optional("nectar-license", "3.1.3"),
-            require("cloudbees-folder", "3.2"),
+            require("cloudbees-registration", "3.6").mandatory(),
+            require("cloudbees-license", "3.6"),
+            require("free-license", "3.2"),
+            optional("nectar-license", "3.4"),
+            require("cloudbees-folder", "3.5"),
             require("cloudbees-cloud-backup", "3.1.4"),
-            require("cloudbees-wasted-minutes-tracker", "3.3"),
-            require("cloudbees-deployer-plugin", "3.7.8")
+            require("cloudbees-wasted-minutes-tracker", "3.5"),
+            require("cloudbees-deployer-plugin", "4.3")
     };
 
     /**
