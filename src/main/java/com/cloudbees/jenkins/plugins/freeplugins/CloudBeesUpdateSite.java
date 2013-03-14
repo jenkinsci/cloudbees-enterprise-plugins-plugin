@@ -25,6 +25,7 @@ package com.cloudbees.jenkins.plugins.freeplugins;
 
 import com.trilead.ssh2.crypto.Base64;
 import hudson.model.Hudson;
+import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.util.FormValidation;
 import hudson.util.TextFile;
@@ -219,6 +220,14 @@ public class CloudBeesUpdateSite extends UpdateSite {
         int v = o.getInt("updateCenterVersion");
         if (v != 1) {
             throw new IllegalArgumentException("Unrecognized update center version: " + v);
+        }
+
+        boolean signatureCheck = true;
+        try {
+            Field signatureCheckField = UpdateSite.class.getField("signatureCheck");
+            signatureCheck = signatureCheckField.getBoolean(null);
+        } catch (Throwable t) {
+            // ignore
         }
 
         if (signatureCheck) {
