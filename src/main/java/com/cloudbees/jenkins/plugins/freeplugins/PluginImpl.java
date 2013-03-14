@@ -97,8 +97,8 @@ public class PluginImpl extends Plugin {
      * The plugins that can and/or should be installed/upgraded.
      */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
-            require("cloudbees-credentials", "3.2"),
-            require("cloudbees-registration", "3.3"),
+            require("cloudbees-credentials", "3.2").mandatory(),
+            require("cloudbees-registration", "3.3").mandatory(),
             require("cloudbees-license", "3.3"),
             require("free-license", "3.1.3"),
             optional("nectar-license", "3.1.3"),
@@ -267,6 +267,20 @@ public class PluginImpl extends Plugin {
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
+            for (Dependency pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
+                if (pluginArtifactId.mandatory) {
+                    LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
+                    PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+                    if (plugin != null && !plugin.isEnabled()) {
+                        LOGGER.log(Level.FINE, "Enabling {0}", pluginArtifactId.name);
+                        try {
+                            plugin.enable();
+                        } catch (IOException e) {
+                            LOGGER.log(Level.WARNING, "Could not enable " + pluginArtifactId.name, e);
+                        }
+                    }
+                }
+            }
             LOGGER.info("Core plugins installation previously completed, will not check or reinstall");
             return;
         }
@@ -281,6 +295,16 @@ public class PluginImpl extends Plugin {
                 if (plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
                     // but older version
                     scheduleInstall(pluginArtifactId);
+                }
+            }
+            if (pluginArtifactId.mandatory) {
+                if (plugin != null && !plugin.isEnabled()) {
+                    LOGGER.log(Level.FINE, "Enabling {0}", pluginArtifactId.name);
+                    try {
+                        plugin.enable();
+                    } catch (IOException e) {
+                        LOGGER.log(Level.WARNING, "Could not enable " + pluginArtifactId.name, e);
+                    }
                 }
             }
         }
@@ -457,7 +481,7 @@ public class PluginImpl extends Plugin {
     }
 
     private static Dependency require(String name, String version) {
-        return new Dependency(name, version, false);
+        return new Dependency(name, version, false, false);
     }
 
     private static Dependency optional(String name) {
@@ -465,18 +489,24 @@ public class PluginImpl extends Plugin {
     }
 
     private static Dependency optional(String name, String version) {
-        return new Dependency(name, version, true);
+        return new Dependency(name, version, true, false);
     }
 
     private static class Dependency {
         public final String name;
         public final VersionNumber version;
         public final boolean optional;
+        public final boolean mandatory;
 
-        private Dependency(String name, String version, boolean optional) {
+        private Dependency(String name, String version, boolean optional, boolean mandatory) {
             this.name = name;
             this.version = version == null ? null : new VersionNumber(version);
             this.optional = optional;
+            this.mandatory = mandatory;
+        }
+
+        public Dependency mandatory() {
+            return new Dependency(name, version == null ? null : version.toString(), optional, mandatory);
         }
     }
 }
