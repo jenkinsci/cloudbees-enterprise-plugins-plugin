@@ -35,7 +35,7 @@
               <img src="${resURL}/images/32x32/plugin.png" alt=""/>
             </td>
             <td style="vertical-align: middle; font-weight: bold; font-size: 1.2em;  color: black;">
-              ${%CloudBees Enterprise Plugins}: ${it.status}
+              ${%Jenkins Enterprise By CloudBees}: ${it.status}
             </td>
           </tr>
         </table>

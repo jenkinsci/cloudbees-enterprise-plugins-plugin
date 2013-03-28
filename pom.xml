@@ -34,17 +34,20 @@
   </parent>
 
   <artifactId>cloudbees-enterprise-plugins</artifactId>
-  <version>1.12-SNAPSHOT</version>
+  <version>12.11-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>CloudBees Enterprise Plugins</name>
+  <name>Jenkins Enterprise By CloudBees</name>
   <description>
-    This plugin converts a Jenkins OSS installation into a Jenkins Enterprise by CloudBees installation.
-    Note: As part of the installation process, you will require a valid license to use the CloudBees Enterprise
-    plugins. An evaluation license can be obtained automatically. Once the evaluation license expires,
-    you must either obtain a full license OR uninstall the plugins requiring such a license.
+    This plugin converts an OSS installation to a Jenkins Enterprise by CloudBees (JEBC) installation. JEBC has dozen+
+    plugins that address issues in enterprise installations. Plugins include folders, validate merges, templates,
+    roles-based access control, backup plugins and others. Additionally, you can use the HA component to make Jenkins
+    highly available.
+    Note: As part of the installation process, you will require a valid license to use the CloudBees Enterprise plugins.
+    An evaluation license can be obtained automatically. Once the evaluation license expires, you must either obtain a
+    full license OR uninstall the plugins requiring such a license.
   </description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Enterprise+Plugins</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Enterprise+by+CloudBees</url>
   <licenses>
     <license>
       <name>The MIT license</name>
@@ -65,9 +68,9 @@
   </prerequisites>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/cloudbees-enterprise-plugins.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/cloudbees-enterprise-plugins.git</developerConnection>
-    <url>http://github.com/jenkinsci/cloudbees-enterprise-plugins</url>
+    <connection>scm:git:git://github.com/jenkinsci/cloudbees-enterprise-plugins-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/cloudbees-enterprise-plugins-plugin.git</developerConnection>
+    <url>http://github.com/jenkinsci/cloudbees-enterprise-plugins-plugin</url>
   </scm>
 
   <properties>
@@ -130,7 +133,7 @@
                     <artifactItem>
                       <groupId>org.jenkins-ci.main</groupId>
                       <artifactId>jenkins-war</artifactId>
-                      <version>1.443</version>
+                      <version>1.466</version>
                       <type>war</type>
                     </artifactItem>
                   </artifactItems>
