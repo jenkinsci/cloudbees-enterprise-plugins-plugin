@@ -2,7 +2,7 @@
 <!--
  ~ The MIT License
  ~
- ~ Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.
+ ~ Copyright (c) 2011-2013, CloudBees, Inc., Stephen Connolly.
  ~
  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
  ~ of this software and associated documentation files (the "Software"), to deal
@@ -28,14 +28,14 @@
   <l:ajax>
     <j:if test="${h.hasPermission(app.ADMINISTER) || it.important}">
       <div style="width:100%; height:40px; overflow:hidden; background-color: ${it.important?'#f57900':'#73d216'};"
-           id="freeplugins-notice-content">
+           id="enterpriseplugins-notice-content">
         <table width="100%" style="border-spacing:2px; position:relative; height:40px">
           <tr>
             <td style="vertical-align: middle; width:32px">
               <img src="${resURL}/images/32x32/plugin.png" alt=""/>
             </td>
             <td style="vertical-align: middle; font-weight: bold; font-size: 1.2em;  color: black;">
-              ${%CloudBees Plugin Gateway}: ${it.status}
+              ${%CloudBees Enterprise Plugins}: ${it.status}
             </td>
           </tr>
         </table>

@@ -1,20 +1,6 @@
 <div>
-  This plugin installs free enterprise plugins from CloudBees. The following plugins are automatically installed:
-  <ul>
-    <li>
-      <b>Folders:</b> easily organize your jobs
-    </li>
-    <li>
-      <b>Backup to Cloud:</b> backup your Jenkins into CloudBees cloud
-    </li>
-    <li>
-      <b>Wasted Minutes:</b> find out if you are short of slaves and need to add capacity to speed up builds
-    </li>
-    <li>
-      <b>CloudBees Status:</b> find out how much of the free CloudBees Jenkins capacity in the cloud is available for your use
-    </li>
-  </ul>
-  <b>Note:</b> You will be asked to register for a free CloudBees account to use these plugins
-  <br/>
-  (This plugin was formerly known as the CloudBees Plugin Gateway plugin)
+  This plugin converts a Jenkins OSS installation into a Jenkins Enterprise by CloudBees installation.
+  <b>Note:</b> As part of the installation process, you will require a valid license to use the CloudBees Enterprise
+  plugins. An evaluation license can be obtained automatically. Once the evaluation license expires,
+  you must either obtain a full license OR uninstall the plugins requiring such a license.
 </div>

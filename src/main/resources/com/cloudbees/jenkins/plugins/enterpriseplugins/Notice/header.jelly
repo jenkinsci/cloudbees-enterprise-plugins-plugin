@@ -2,7 +2,7 @@
 <!--
  ~ The MIT License
  ~
- ~ Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.
+ ~ Copyright (c) 2011-2013, CloudBees, Inc., Stephen Connolly.
  ~
  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
  ~ of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler">
   <j:if test="${it.nagDue}">
-    <div style="display:none" id="freeplugins-notice">
+    <div style="display:none" id="enterpriseplugins-notice">
       <st:include page="ajax.jelly"/>
     </div>
     <script>
@@ -54,14 +54,14 @@
       YAHOO.util.Event.on(window, 'load', function () {
         window.setTimeout(function () {
           var header = document.getElementById("header");
-          var ad = document.getElementById("freeplugins-notice").firstChild;
+          var ad = document.getElementById("enterpriseplugins-notice").firstChild;
           ad.parentNode.removeChild(ad);
           if (header.nextSibling === null) {
             header.parentNode.appendChild(ad);
           } else {
             header.parentNode.insertBefore(ad, header.nextSibling);
           }
-          refreshNoticeNode("freeplugins-notice-content", "${rootUrl}${it.class.name}/instance/ajax");
+          refreshNoticeNode("enterpriseplugins-notice-content", "${rootUrl}${it.class.name}/instance/ajax");
         }, 1);
       });
     </script>

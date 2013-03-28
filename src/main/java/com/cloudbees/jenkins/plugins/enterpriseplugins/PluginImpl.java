@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.
+ * Copyright (c) 2011-2013, CloudBees, Inc., Stephen Connolly.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.cloudbees.jenkins.plugins.freeplugins;
+package com.cloudbees.jenkins.plugins.enterpriseplugins;
 
 import hudson.BulkChange;
 import hudson.Extension;
@@ -72,7 +72,7 @@ public class PluginImpl extends Plugin {
      * The current update center URL.
      */
     private static final String CLOUDBEES_UPDATE_CENTER_URL =
-            "http://jenkins-updates.cloudbees.com/update-center/cloudbees-proprietary/update-center.json";
+            "http://jenkins-updates.cloudbees.com/update-center.json";
 
     /**
      * The current update center URL and any previous URLs that were used for the same content and should be migrated
@@ -80,35 +80,64 @@ public class PluginImpl extends Plugin {
      */
     private static final Set<String> cloudBeesUpdateCenterUrls = new HashSet<String>(Arrays.asList(
             CLOUDBEES_UPDATE_CENTER_URL,
-            "http://jenkins-updates.apps.cloudbees.com/update-center/cloudbees-proprietary/update-center.json"
+            "http://nectar-updates.cloudbees.com/update-center.json"
     ));
 
     /**
      * The current update center ID.
      */
-    private static final String CLOUDBEES_UPDATE_CENTER_ID = "cloudbees-proprietary";
+    private static final String CLOUDBEES_UPDATE_CENTER_ID = "jenkins-enterprise";
 
     /**
      * The current update center ID and any previous IDs that were used for the same content and should be migrated
      * to the current one.
      */
     private static final Set<String> cloudBeesUpdateCenterIds = new HashSet<String>(Arrays.asList(
-            CLOUDBEES_UPDATE_CENTER_ID
+            CLOUDBEES_UPDATE_CENTER_ID,
+            "ichci"
     ));
 
     /**
      * The plugins that can and/or should be installed/upgraded.
      */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
-            require("cloudbees-credentials", "3.2").mandatory(),
-            require("cloudbees-registration", "3.6").mandatory(),
             require("cloudbees-license", "3.6"),
-            require("free-license", "3.2"),
-            optional("nectar-license", "3.4"),
+            require("cloudbees-support", "1.0"),
+            require("active-directory", "1.30"),
+            require("build-timeout", "1.11"),
+            require("copyartifact", "1.25"),
+            require("dashboard-view", "2.4"),
+            require("parameterized-trigger", "2.17"),
+            require("promoted-builds", "2.8"),
+            require("translation", "1.10"),
+            require("async-http-client", "1.7.8"),
+            require("credentials", "1.3.1"),
+            require("git", "1.3.0"),
+            require("git-client", "1.0.4"),
+            require("analysis-core", "1.49"),
+            require("findbugs", "4.48"),
+            require("mercurial", "1.44"),
+            require("monitoring", "1.43.0"),
+            require("warnings", "4.23"),
+            require("infradna-backup", "3.5"),
+            require("nectar-vmware", "3.10"),
+            require("nectar-rbac", "3.8"),
             require("cloudbees-folder", "3.5"),
-            require("cloudbees-cloud-backup", "3.1.4"),
+            require("cloudbees-folders-plus", "1.1"),
+            require("wikitext", "3.2"),
+            require("nectar-license", "3.4"),
+            require("cloudbees-template", "3.9"),
+            require("skip-plugin", "3.4"),
+            require("cloudbees-even-scheduler", "3.2"),
+            require("cloudbees-update-center-plugin", "3.5"),
+            require("cloudbees-secure-copy", "3.4"),
             require("cloudbees-wasted-minutes-tracker", "3.5"),
-            require("cloudbees-deployer-plugin", "4.3")
+            require("git-validated-merge", "3.7"),
+            require("cloudbees-jsync-archiver", "3.5"),
+            require("cloudbees-ha"),
+            require("cloudbees-label-throttling-plugin", "3.2"),
+            require("cloudbees-plugin-usage", "1.0"),
+            require("cloudbees-nodes-plus", "1.0"),
     };
 
     /**
@@ -211,61 +240,84 @@ public class PluginImpl extends Plugin {
         return statusImportant;
     }
 
-    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = "cloudbees-update-center-configured")
+    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = "cloudbees-enterprise-update-center-configured")
     public static void addUpdateCenter() throws Exception {
         LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
         UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
         PersistedList<UpdateSite> sites = updateCenter.getSites();
-        if (sites.isEmpty()) {
-            // likely the list has not been loaded yet
-            updateCenter.load();
-            sites = updateCenter.getSites();
-        }
-
-        boolean found = false;
-        List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
-        for (UpdateSite site : sites) {
-            LOGGER.log(Level.FINEST, "Update site {0} class {1} url {2}",
-                    new Object[]{site.getId(), site.getClass(), site.getUrl()});
-            if (cloudBeesUpdateCenterUrls.contains(site.getUrl()) || cloudBeesUpdateCenterIds.contains(site.getId())
-                    || site instanceof CloudBeesUpdateSite) {
-                LOGGER.log(Level.FINE, "Found possible match:\n  class = {0}\n  url = {1}\n  id = {2}",
-                        new Object[]{site.getClass().getName(), site.getUrl(), site.getId()});
-                boolean valid = site instanceof CloudBeesUpdateSite
-                        && CLOUDBEES_UPDATE_CENTER_URL.equals(site.getUrl())
-                        && CLOUDBEES_UPDATE_CENTER_ID.equals(site.getId());
-                if (found || !valid) {
-                    // remove old and duplicate entries
+        PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin("nectar-license");
+        if (plugin != null && plugin.isActive()) {
+            // delegate to nectar-license once it is installed and active
+            List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
+            for (UpdateSite site : sites) {
+                if (site instanceof CloudBeesUpdateSite) {
                     forRemoval.add(site);
                 }
-                found = found || valid;
             }
-        }
 
-        // now make the changes if we have any to make
-        LOGGER.log(Level.FINE, "Found={0}\nRemoving={1}", new Object[]{found, forRemoval});
-        if (!found || !forRemoval.isEmpty()) {
-            BulkChange bc = new BulkChange(updateCenter);
-            try {
-                for (UpdateSite site : forRemoval) {
-                    LOGGER.info("Removing legacy CloudBees Update Center from list of update centers");
-                    sites.remove(site);
+            // now make the changes if we have any to make
+            if (!forRemoval.isEmpty()) {
+                BulkChange bc = new BulkChange(updateCenter);
+                try {
+                    for (UpdateSite site : forRemoval) {
+                        sites.remove(site);
+                    }
+                } finally {
+                    bc.commit();
                 }
-                if (sites.isEmpty()) {
-                    LOGGER.info("Adding Default Update Center to list of update centers as it was missing");
-                    sites.add(new UpdateSite("default", "http://updates.jenkins-ci.org/update-center.json"));
+            }
+        } else {
+            if (sites.isEmpty()) {
+                // likely the list has not been loaded yet
+                updateCenter.load();
+                sites = updateCenter.getSites();
+            }
+
+            boolean found = false;
+            List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
+            for (UpdateSite site : sites) {
+                LOGGER.log(Level.FINEST, "Update site {0} class {1} url {2}",
+                        new Object[]{site.getId(), site.getClass(), site.getUrl()});
+                if (cloudBeesUpdateCenterUrls.contains(site.getUrl()) || cloudBeesUpdateCenterIds.contains(site.getId())
+                        || site instanceof CloudBeesUpdateSite) {
+                    LOGGER.log(Level.FINE, "Found possible match:\n  class = {0}\n  url = {1}\n  id = {2}",
+                            new Object[]{site.getClass().getName(), site.getUrl(), site.getId()});
+                    boolean valid = site instanceof CloudBeesUpdateSite
+                            && CLOUDBEES_UPDATE_CENTER_URL.equals(site.getUrl())
+                            && CLOUDBEES_UPDATE_CENTER_ID.equals(site.getId());
+                    if (found || !valid) {
+                        // remove old and duplicate entries
+                        forRemoval.add(site);
+                    }
+                    found = found || valid;
                 }
-                if (!found) {
-                    LOGGER.info("Adding CloudBees Update Center to list of update centers");
-                    sites.add(new CloudBeesUpdateSite(CLOUDBEES_UPDATE_CENTER_ID, CLOUDBEES_UPDATE_CENTER_URL));
+            }
+
+            // now make the changes if we have any to make
+            LOGGER.log(Level.FINE, "Found={0}\nRemoving={1}", new Object[]{found, forRemoval});
+            if (!found || !forRemoval.isEmpty()) {
+                BulkChange bc = new BulkChange(updateCenter);
+                try {
+                    for (UpdateSite site : forRemoval) {
+                        LOGGER.info("Removing legacy CloudBees Update Center from list of update centers");
+                        sites.remove(site);
+                    }
+                    if (sites.isEmpty()) {
+                        LOGGER.info("Adding Default Update Center to list of update centers as it was missing");
+                        sites.add(new UpdateSite("default", "http://updates.jenkins-ci.org/update-center.json"));
+                    }
+                    if (!found) {
+                        LOGGER.info("Adding CloudBees Update Center to list of update centers");
+                        sites.add(new CloudBeesUpdateSite(CLOUDBEES_UPDATE_CENTER_ID, CLOUDBEES_UPDATE_CENTER_URL));
+                    }
+                } finally {
+                    bc.commit();
                 }
-            } finally {
-                bc.commit();
             }
         }
     }
 
-    @Initializer(requires = "cloudbees-update-center-configured")
+    @Initializer(requires = "cloudbees-enterprise-update-center-configured")
     public static void installCorePlugins() {
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
@@ -382,10 +434,11 @@ public class PluginImpl extends Plugin {
                         Trigger.timer.scheduleAtFixedRate(new SafeTimerTask() {
                             @Override
                             protected void doRun() throws Exception {
-                                if (!Jenkins.getInstance().isQuietingDown())
+                                if (!Jenkins.getInstance().isQuietingDown()) {
                                     status = null;
+                                }
                             }
-                        },1000,1000);
+                        }, 1000, 1000);
                     } catch (RestartNotSupportedException exception) {
                         // ignore if restart is not allowed
                         status = Messages._Notice_restartRequired();
@@ -481,10 +534,6 @@ public class PluginImpl extends Plugin {
                 return !pendingPluginInstalls.isEmpty();
             }
         }
-    }
-
-    static {
-        UpdateCenter.XSTREAM.alias("cloudbees", CloudBeesUpdateSite.class);
     }
 
     private static Dependency require(String name) {

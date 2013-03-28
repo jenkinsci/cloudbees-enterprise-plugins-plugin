@@ -2,7 +2,7 @@
 <!--
  ~ The MIT License
  ~
- ~ Copyright (c) 2011-2012, CloudBees, Inc., Stephen Connolly.
+ ~ Copyright (c) 2011-2013, CloudBees, Inc., Stephen Connolly.
  ~
  ~ Permission is hereby granted, free of charge, to any person obtaining a copy
  ~ of this software and associated documentation files (the "Software"), to deal
@@ -29,31 +29,22 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.447</version>
+    <version>1.466</version>
     <relativePath />
   </parent>
 
-  <artifactId>cloudbees-plugin-gateway</artifactId>
+  <artifactId>cloudbees-enterprise-plugins</artifactId>
   <version>1.12-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>CloudBees Free Enterprise Plugins</name>
+  <name>CloudBees Enterprise Plugins</name>
   <description>
-    This plugin installs free enterprise plugins from CloudBees. The following plugins are automatically installed:
-
-    * Folders: easily organize your jobs
-
-    * Backup to Cloud: backup your Jenkins into CloudBees cloud
-
-    * Wasted Minutes: find out if you are short of slaves and need to add capacity to speed up builds
-
-    * CloudBees Status: find out how much of the free CloudBees Jenkins capacity in the cloud is available for your use
-
-    Note: You will be asked to register for a free CloudBees account to use these plugins
-
-    (This plugin was formerly known as the CloudBees Plugin Gateway plugin)
+    This plugin converts a Jenkins OSS installation into a Jenkins Enterprise by CloudBees installation.
+    Note: As part of the installation process, you will require a valid license to use the CloudBees Enterprise
+    plugins. An evaluation license can be obtained automatically. Once the evaluation license expires,
+    you must either obtain a full license OR uninstall the plugins requiring such a license.
   </description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Free+Enterprise+Plugins</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Enterprise+Plugins</url>
   <licenses>
     <license>
       <name>The MIT license</name>
@@ -74,9 +65,9 @@
   </prerequisites>
 
   <scm>
-    <connection>scm:git:git://github.com/jenkinsci/cloudbees-plugin-gateway.git</connection>
-    <developerConnection>scm:git:git@github.com:jenkinsci/cloudbees-plugin-gateway.git</developerConnection>
-    <url>http://github.com/jenkinsci/cloudbees-plugin-gateway</url>
+    <connection>scm:git:git://github.com/jenkinsci/cloudbees-enterprise-plugins.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/cloudbees-enterprise-plugins.git</developerConnection>
+    <url>http://github.com/jenkinsci/cloudbees-enterprise-plugins</url>
   </scm>
 
   <properties>
@@ -90,11 +81,13 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>async-http-client</artifactId>
       <version>1.7.8</version>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
       <version>1.3.1</version>
+      <optional>true</optional>
     </dependency>
   </dependencies>
 
