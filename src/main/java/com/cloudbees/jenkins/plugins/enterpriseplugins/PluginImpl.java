@@ -101,7 +101,7 @@ public class PluginImpl extends Plugin {
      * The plugins that can and/or should be installed/upgraded.
      */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
-            require("cloudbees-license", "3.6"),
+            require("cloudbees-license", "4.0"),
             require("cloudbees-support", "1.0"),
             require("active-directory", "1.30"),
             require("build-timeout", "1.11"),
@@ -125,7 +125,8 @@ public class PluginImpl extends Plugin {
             require("cloudbees-folder", "3.5"),
             require("cloudbees-folders-plus", "1.1"),
             require("wikitext", "3.2"),
-            require("nectar-license", "3.4"),
+            require("nectar-license", "4.0"),
+            optional("free-license", "4.0"),
             require("cloudbees-template", "3.9"),
             require("skip-plugin", "3.4"),
             require("cloudbees-even-scheduler", "3.2"),
