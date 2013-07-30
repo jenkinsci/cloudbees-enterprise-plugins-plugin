@@ -248,74 +248,77 @@ public class PluginImpl extends Plugin {
     public static void addUpdateCenter() throws Exception {
         LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
         UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
-        PersistedList<UpdateSite> sites = updateCenter.getSites();
-        PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin("nectar-license");
-        if (plugin != null && plugin.isActive()) {
-            // delegate to nectar-license once it is installed and active
-            List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
-            for (UpdateSite site : sites) {
-                if (site instanceof CloudBeesUpdateSite) {
-                    forRemoval.add(site);
-                }
-            }
-
-            // now make the changes if we have any to make
-            if (!forRemoval.isEmpty()) {
-                BulkChange bc = new BulkChange(updateCenter);
-                try {
-                    for (UpdateSite site : forRemoval) {
-                        sites.remove(site);
-                    }
-                } finally {
-                    bc.commit();
-                }
-            }
-        } else {
-            if (sites.isEmpty()) {
-                // likely the list has not been loaded yet
-                updateCenter.load();
-                sites = updateCenter.getSites();
-            }
-
-            boolean found = false;
-            List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
-            for (UpdateSite site : sites) {
-                LOGGER.log(Level.FINEST, "Update site {0} class {1} url {2}",
-                        new Object[]{site.getId(), site.getClass(), site.getUrl()});
-                if (cloudBeesUpdateCenterUrls.contains(site.getUrl()) || cloudBeesUpdateCenterIds.contains(site.getId())
-                        || site instanceof CloudBeesUpdateSite) {
-                    LOGGER.log(Level.FINE, "Found possible match:\n  class = {0}\n  url = {1}\n  id = {2}",
-                            new Object[]{site.getClass().getName(), site.getUrl(), site.getId()});
-                    boolean valid = site instanceof CloudBeesUpdateSite
-                            && CLOUDBEES_UPDATE_CENTER_URL.equals(site.getUrl())
-                            && CLOUDBEES_UPDATE_CENTER_ID.equals(site.getId());
-                    if (found || !valid) {
-                        // remove old and duplicate entries
+        synchronized (updateCenter) {
+            PersistedList<UpdateSite> sites = updateCenter.getSites();
+            PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin("nectar-license");
+            if (plugin != null && plugin.isActive()) {
+                // delegate to nectar-license once it is installed and active
+                List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
+                for (UpdateSite site : sites) {
+                    if (site instanceof CloudBeesUpdateSite) {
                         forRemoval.add(site);
                     }
-                    found = found || valid;
                 }
-            }
 
-            // now make the changes if we have any to make
-            LOGGER.log(Level.FINE, "Found={0}\nRemoving={1}", new Object[]{found, forRemoval});
-            if (!found || !forRemoval.isEmpty()) {
-                BulkChange bc = new BulkChange(updateCenter);
-                try {
-                    for (UpdateSite site : forRemoval) {
-                        LOGGER.info("Removing legacy CloudBees Update Center from list of update centers");
-                        sites.remove(site);
+                // now make the changes if we have any to make
+                if (!forRemoval.isEmpty()) {
+                    BulkChange bc = new BulkChange(updateCenter);
+                    try {
+                        for (UpdateSite site : forRemoval) {
+                            sites.remove(site);
+                        }
+                    } finally {
+                        bc.commit();
                     }
-                    if (sites.isEmpty()) {
-                        LOGGER.info("Adding Default Update Center to list of update centers as it was missing");
-                        sites.add(new UpdateSite("default", "http://updates.jenkins-ci.org/update-center.json"));
+                }
+            } else {
+                if (sites.isEmpty()) {
+                    // likely the list has not been loaded yet
+                    updateCenter.load();
+                    sites = updateCenter.getSites();
+                }
+
+                boolean found = false;
+                List<UpdateSite> forRemoval = new ArrayList<UpdateSite>();
+                for (UpdateSite site : sites) {
+                    LOGGER.log(Level.FINEST, "Update site {0} class {1} url {2}",
+                            new Object[]{site.getId(), site.getClass(), site.getUrl()});
+                    if (cloudBeesUpdateCenterUrls.contains(site.getUrl()) || cloudBeesUpdateCenterIds
+                            .contains(site.getId())
+                            || site instanceof CloudBeesUpdateSite) {
+                        LOGGER.log(Level.FINE, "Found possible match:\n  class = {0}\n  url = {1}\n  id = {2}",
+                                new Object[]{site.getClass().getName(), site.getUrl(), site.getId()});
+                        boolean valid = site instanceof CloudBeesUpdateSite
+                                && CLOUDBEES_UPDATE_CENTER_URL.equals(site.getUrl())
+                                && CLOUDBEES_UPDATE_CENTER_ID.equals(site.getId());
+                        if (found || !valid) {
+                            // remove old and duplicate entries
+                            forRemoval.add(site);
+                        }
+                        found = found || valid;
                     }
-                    if (!found) {
-                        LOGGER.info("Adding CloudBees Update Center to list of update centers");
-                        sites.add(new CloudBeesUpdateSite(CLOUDBEES_UPDATE_CENTER_ID, CLOUDBEES_UPDATE_CENTER_URL));
+                }
+
+                // now make the changes if we have any to make
+                LOGGER.log(Level.FINE, "Found={0}\nRemoving={1}", new Object[]{found, forRemoval});
+                if (!found || !forRemoval.isEmpty()) {
+                    BulkChange bc = new BulkChange(updateCenter);
+                    try {
+                        for (UpdateSite site : forRemoval) {
+                            LOGGER.info("Removing legacy CloudBees Update Center from list of update centers");
+                            sites.remove(site);
+                        }
+                        if (sites.isEmpty()) {
+                            LOGGER.info("Adding Default Update Center to list of update centers as it was missing");
+                            sites.add(new UpdateSite("default", "http://updates.jenkins-ci.org/update-center.json"));
+                        }
+                        if (!found) {
+                            LOGGER.info("Adding CloudBees Update Center to list of update centers");
+                            sites.add(new CloudBeesUpdateSite(CLOUDBEES_UPDATE_CENTER_ID, CLOUDBEES_UPDATE_CENTER_URL));
+                        }
+                    } finally {
+                        bc.commit();
                     }
-                } finally {
-                    bc.commit();
                 }
             }
         }
