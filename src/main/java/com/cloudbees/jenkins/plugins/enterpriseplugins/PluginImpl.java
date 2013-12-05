@@ -155,8 +155,8 @@ public class PluginImpl extends Plugin {
             require("cloudbees-quiet-start", "1.0"),
             require("operations-center-agent", "1.0"),
             require("operations-center-context", "1.0"),
-            require("operations-center-client", "1.0"),
-            require("operations-center-cloud", "1.0")
+            require("operations-center-client", "1.1"),
+            require("operations-center-cloud", "1.1")
     };
 
     /**
