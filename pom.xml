@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>cloudbees-enterprise-plugins</artifactId>
-  <version>14.2.-SNAPSHOT</version>
+  <version>14.2.0</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Enterprise By CloudBees</name>
