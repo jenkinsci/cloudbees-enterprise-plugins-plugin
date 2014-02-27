@@ -126,7 +126,7 @@ public class PluginImpl extends Plugin {
             require("warnings", "4.35"),
             require("build-view-column", "0.2"),
             require("suppress-stack-trace", "1.2"),
-            require("cloudbees-folder", "4.2.1"),
+            require("cloudbees-folder", "4.5"),
             require("scm-api", "0.2"),
             require("openid", "1.7"),
             require("node-iterator-api", "1.1"),

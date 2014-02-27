@@ -29,12 +29,12 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>1.532.2</version>
+    <version>1.548</version>
     <relativePath />
   </parent>
 
   <artifactId>cloudbees-enterprise-plugins</artifactId>
-  <version>13.11.3-SNAPSHOT</version>
+  <version>14.2.-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Jenkins Enterprise By CloudBees</name>
