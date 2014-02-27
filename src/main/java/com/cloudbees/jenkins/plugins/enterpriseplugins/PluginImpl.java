@@ -102,9 +102,9 @@ public class PluginImpl extends Plugin {
      */
     private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
             require("support-core", "1.5"), // put this first
-            require("cloudbees-license", "5.1"), // put this second
+            require("cloudbees-license", "5.3"), // put this second
             require("cloudbees-support", "2.1"), // put this third
-            require("maven-plugin", "1.33"),
+            require("maven-plugin", "2.0"),
             require("active-directory", "1.33"),
             require("build-timeout", "1.12.2"),
             require("copyartifact", "1.28"),
@@ -118,6 +118,7 @@ public class PluginImpl extends Plugin {
             require("ssh-slaves", "1.5"),
             require("git", "2.0"),
             require("git-client", "1.4.6"),
+            require("ssh-agent", "1.4.1"),
             require("analysis-core", "1.54"),
             require("findbugs", "4.51"),
             require("mercurial", "1.49"),
@@ -125,7 +126,7 @@ public class PluginImpl extends Plugin {
             require("warnings", "4.35"),
             require("build-view-column", "0.2"),
             require("suppress-stack-trace", "1.2"),
-            require("cloudbees-folder", "4.0"),
+            require("cloudbees-folder", "4.2.1"),
             require("scm-api", "0.2"),
             require("openid", "1.7"),
             require("node-iterator-api", "1.1"),
@@ -134,8 +135,7 @@ public class PluginImpl extends Plugin {
             require("nectar-rbac", "4.3"),
             require("cloudbees-folders-plus", "2.4"),
             require("wikitext", "3.5"),
-            require("nectar-license", "5.1"),
-            optional("free-license", "4.0"),
+            require("nectar-license", "5.3"),
             require("cloudbees-template", "4.1"),
             require("skip-plugin", "3.5"),
             require("cloudbees-even-scheduler", "3.3"),
@@ -153,9 +153,9 @@ public class PluginImpl extends Plugin {
             require("cloudbees-view-creation-filter", "1.0"),
             optional("cloudbees-ssh-slaves", "0.1-beta-3"),
             require("cloudbees-quiet-start", "1.0"),
-            require("operations-center-agent", "1.0"),
-            require("operations-center-context", "1.0"),
-            require("operations-center-client", "1.1"),
+            require("operations-center-agent", "1.1"),
+            require("operations-center-context", "1.1"),
+            require("operations-center-client", "1.2"),
             require("operations-center-cloud", "1.1")
     };
 
