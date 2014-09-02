@@ -25,21 +25,11 @@
 
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-  <l:ajax>
-    <j:if test="${h.hasPermission(app.ADMINISTER) || it.important}">
-      <div style="width:100%; height:40px; overflow:hidden; background-color: ${it.important?'#f57900':'#73d216'};"
-           id="enterpriseplugins-notice-content">
-        <table width="100%" style="border-spacing:2px; position:relative; height:40px">
-          <tr>
-            <td style="vertical-align: middle; width:32px">
-              <img src="${resURL}/images/32x32/plugin.png" alt=""/>
-            </td>
-            <td style="vertical-align: middle; font-weight: bold; font-size: 1.2em;  color: black;">
-              ${%Jenkins Enterprise By CloudBees}: ${it.status}
-            </td>
-          </tr>
-        </table>
-      </div>
-    </j:if>
-  </l:ajax>
+    <l:ajax>
+        <l:hasPermission permission="${app.ADMINISTER}">
+            <div id="${it.urlName}" style="vertical-align: middle; font-weight: bold; font-size: 1.2em;  color: black;">
+                <j:out value="${it.status}"/>
+            </div>
+        </l:hasPermission>
+    </l:ajax>
 </j:jelly>

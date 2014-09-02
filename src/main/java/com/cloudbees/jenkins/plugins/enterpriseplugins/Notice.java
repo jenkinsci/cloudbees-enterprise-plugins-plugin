@@ -24,59 +24,46 @@
 package com.cloudbees.jenkins.plugins.enterpriseplugins;
 
 import hudson.Extension;
-import hudson.model.PageDecorator;
-import hudson.model.RootAction;
+import hudson.model.ManagementLink;
+import jenkins.model.Jenkins;
 import org.jvnet.localizer.Localizable;
+import org.kohsuke.stapler.HttpResponse;
+import org.kohsuke.stapler.HttpResponses;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.interceptor.RequirePOST;
 
 /**
  * Displays the enterprise plugins progress notices
  */
 @Extension
-public class Notice extends PageDecorator {
-
-    public Notice() {
-        super(Notice.class);
-    }
-
-    public boolean isNagDue() {
-        return getStatus() != null;
-    }
+public class Notice extends ManagementLink {
 
     public Localizable getStatus() {
         return PluginImpl.getStatus();
     }
 
-    public boolean isImportant() {
-        return PluginImpl.isStatusImportant();
+    @Override public String getIconFileName() {
+        // TODO maybe get a CloudBees icon?
+        return PluginImpl.isEverythingInstalled() ? null : "installer.png";
     }
 
-    public static Notice getInstanceOrDie() {
-        for (PageDecorator decorator : PageDecorator.all()) {
-            if (decorator instanceof Notice) {
-                return (Notice) decorator;
-            }
-        }
-        throw new AssertionError(Notice.class + " is missing from the extension list");
+    @Override public String getUrlName() {
+        return "installJEbC";
     }
 
-    @Extension
-    public static class RootActionImpl implements RootAction {
+    @Override public String getDisplayName() {
+        return Messages.Notice_displayName();
+    }
 
-        public String getIconFileName() {
-            return null; // hidden
-        }
+    @Override public String getDescription() {
+        return Messages.Notice_description();
+    }
 
-        public String getDisplayName() {
-            return null; // hidden
-        }
-
-        public String getUrlName() {
-            return Notice.class.getName();
-        }
-
-        public Notice getInstance() {
-            return getInstanceOrDie();
-        }
+    @RequirePOST
+    public HttpResponse doInstall(@QueryParameter boolean full) throws Exception {
+        Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
+        PluginImpl.installPlugins(full);
+        return HttpResponses.redirectToDot();
     }
 
 }

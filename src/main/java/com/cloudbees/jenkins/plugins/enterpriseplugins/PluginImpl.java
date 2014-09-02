@@ -24,7 +24,6 @@
 package com.cloudbees.jenkins.plugins.enterpriseplugins;
 
 import hudson.BulkChange;
-import hudson.Extension;
 import hudson.Plugin;
 import hudson.PluginWrapper;
 import hudson.init.InitMilestone;
@@ -92,7 +91,10 @@ public class PluginImpl extends Plugin {
             "ichci"
     ));
 
-    private static final String UC_CONFIGURED_MILESTONE = "cloudbees-enterprise-update-center-configured";
+    private static final Dependency ASYNC_HTTP_CLIENT = require("async-http-client","1.7.8");
+    private static final Dependency CLOUDBEES_LICENSE = require("cloudbees-license", "5.3");
+    private static final Dependency NECTAR_LICENSE = require("nectar-license","5.4");
+    private static final Dependency[] CLOUDBEES_PLUGINS_MINIMAL = {ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE};
 
     /**
      * The plugins that can and/or should be installed/upgraded.
@@ -100,7 +102,7 @@ public class PluginImpl extends Plugin {
     private static final Dependency[] CLOUDBEES_PLUGINS = {
             require("metrics","3.0.5"), // put this first
             require("support-core","2.6"), // put this second
-            require("cloudbees-license", "5.3"), // put this third
+            CLOUDBEES_LICENSE, // put this third
             require("cloudbees-support", "3.0"), // put this forth
             require("maven-plugin","2.3"),
             require("active-directory","1.38"),
@@ -110,7 +112,7 @@ public class PluginImpl extends Plugin {
             require("parameterized-trigger","2.24"),
             require("promoted-builds","2.17"),
             require("translation","1.11"),
-            require("async-http-client","1.7.8"),
+            ASYNC_HTTP_CLIENT,
             require("credentials","1.13"),
             require("ssh-credentials","1.6.1"),
             require("ssh-slaves","1.6"),
@@ -135,7 +137,7 @@ public class PluginImpl extends Plugin {
             require("nectar-rbac","4.8"),
             require("cloudbees-folders-plus","2.9"),
             require("wikitext","3.6"),
-            require("nectar-license","5.4"),
+            NECTAR_LICENSE,
             require("cloudbees-template","4.10"),
             require("skip-plugin","3.5"),
             require("cloudbees-even-scheduler","3.3"),
@@ -178,11 +180,6 @@ public class PluginImpl extends Plugin {
      * The current status.
      */
     private static volatile Localizable status = null;
-
-    /**
-     * Whether the current status is important.
-     */
-    private static volatile boolean statusImportant = false;
 
     /**
      * The most recently installed version of this plugin, used to trigger whether to re-evaluate installing/upgrading
@@ -258,13 +255,9 @@ public class PluginImpl extends Plugin {
         return status;
     }
 
-    public static boolean isStatusImportant() {
-        return statusImportant;
-    }
-
-    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = UC_CONFIGURED_MILESTONE)
-    public static void addUpdateCenter() throws Exception {
-        LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
+    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED)
+    public static void removeUpdateCenter() throws Exception {
+        LOGGER.log(Level.FINE, "Checking whether the official CloudBees update center has been configured.");
         UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
         synchronized (updateCenter) {
             PersistedList<UpdateSite> sites = updateCenter.getSites();
@@ -289,7 +282,16 @@ public class PluginImpl extends Plugin {
                         bc.commit();
                     }
                 }
-            } else {
+            }
+        }
+    }
+
+    private static void addUpdateCenter() throws Exception {
+        status = Messages._Notice_downloadUCMetadata();
+        LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
+        UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
+        synchronized (updateCenter) {
+            PersistedList<UpdateSite> sites = updateCenter.getSites();
                 if (sites.isEmpty()) {
                     // likely the list has not been loaded yet
                     updateCenter.load();
@@ -339,32 +341,30 @@ public class PluginImpl extends Plugin {
                     }
                 }
             }
-        }
     }
 
-    @Initializer(requires = UC_CONFIGURED_MILESTONE)
-    public static void installCorePlugins() {
-        LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
+    public static boolean isEverythingInstalled() {
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
             for (Dependency pluginArtifactId : CLOUDBEES_PLUGINS) {
                 if (pluginArtifactId.mandatory) {
                     LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
                     PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
-                    if (plugin != null && !plugin.isEnabled()) {
-                        LOGGER.log(Level.FINE, "Enabling {0}", pluginArtifactId.name);
-                        try {
-                            plugin.enable();
-                        } catch (IOException e) {
-                            LOGGER.log(Level.WARNING, "Could not enable " + pluginArtifactId.name, e);
-                        }
+                    if (plugin == null) {
+                        return false;
                     }
                 }
             }
-            LOGGER.info("Core plugins installation previously completed, will not check or reinstall");
-            return;
+            return true;
+        } else {
+            return false;
         }
-        for (Dependency pluginArtifactId : CLOUDBEES_PLUGINS) {
+    }
+
+    public static void installPlugins(boolean full) throws Exception {
+        addUpdateCenter();
+        LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
+        for (Dependency pluginArtifactId : full ? CLOUDBEES_PLUGINS : CLOUDBEES_PLUGINS_MINIMAL) {
             LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
             PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
             if (plugin == null && !pluginArtifactId.optional) {
@@ -392,7 +392,6 @@ public class PluginImpl extends Plugin {
         synchronized (pendingPluginInstalls) {
             finished = pendingPluginInstalls.isEmpty();
             if (!finished && (worker == null || !worker.isAlive())) {
-                status = Messages._Notice_downloadUCMetadata();
                 LOGGER.info("Starting background thread for core plugin installation");
                 worker = new DelayedInstaller();
                 worker.setDaemon(true);
@@ -401,6 +400,7 @@ public class PluginImpl extends Plugin {
                 LOGGER.log(Level.INFO, "Nothing to do");
             }
         }
+        PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (finished && instance != null) {
             instance.setInstalled(true);
         }
@@ -413,8 +413,7 @@ public class PluginImpl extends Plugin {
         }
     }
 
-    @Extension
-    public static class DelayedInstaller extends Thread {
+    private static class DelayedInstaller extends Thread {
 
         private long nextWarning;
 
@@ -446,7 +445,6 @@ public class PluginImpl extends Plugin {
                     }
                 }
                 if (!loop) {
-                    statusImportant = true;
                     try {
                         status = Messages._Notice_scheduledRestart();
                         try {
@@ -564,7 +562,7 @@ public class PluginImpl extends Plugin {
     }
 
     private static Dependency require(String name, String version) {
-        return new Dependency(name, version, false, false);
+        return new Dependency(name, version, false, true);
     }
 
     private static Dependency optional(String name) {
