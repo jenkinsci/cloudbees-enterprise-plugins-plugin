@@ -105,6 +105,9 @@
               <Support-Dynamic-Loading>true</Support-Dynamic-Loading>
             </manifestEntries>
           </archive>
+          <loggers>
+            <com.cloudbees.jenkins.plugins.enterpriseplugins>FINE</com.cloudbees.jenkins.plugins.enterpriseplugins>
+          </loggers>
         </configuration>
       </plugin>
     </plugins>
