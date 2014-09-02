@@ -37,7 +37,7 @@
   <version>14.6.0-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>Install Jenkins Enterprise By CloudBees</name>
+  <name>Install Jenkins Enterprise by CloudBees</name>
   <description>
     This plugin converts an OSS installation to a Jenkins Enterprise by CloudBees (JEBC) installation. JEBC has dozen+
     plugins that address issues in enterprise installations. Plugins include folders, validate merges, templates,
