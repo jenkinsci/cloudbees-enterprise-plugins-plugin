@@ -41,7 +41,6 @@ import hudson.util.TimeUnit2;
 import hudson.util.VersionNumber;
 import jenkins.model.Jenkins;
 import org.acegisecurity.context.SecurityContextHolder;
-import org.jvnet.hudson.reactor.Milestone;
 import org.jvnet.localizer.Localizable;
 
 import java.io.IOException;
@@ -58,10 +57,6 @@ import org.acegisecurity.context.SecurityContext;
  * Installs the custom update site.
  */
 public class PluginImpl extends Plugin {
-
-    public static enum Milestones implements Milestone {
-        UPDATE_CENTER_CONFIGURED
-    }
 
     /**
      * Our logger.
