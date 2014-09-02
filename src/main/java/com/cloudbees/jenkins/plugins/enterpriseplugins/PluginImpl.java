@@ -102,7 +102,7 @@ public class PluginImpl extends Plugin {
     /**
      * The plugins that can and/or should be installed/upgraded.
      */
-    private static final Dependency[] CLOUDBEES_FREE_PLUGINS = {
+    private static final Dependency[] CLOUDBEES_PLUGINS = {
             require("metrics","3.0.5"), // put this first
             require("support-core","2.6"), // put this second
             require("cloudbees-license", "5.3"), // put this third
@@ -191,7 +191,7 @@ public class PluginImpl extends Plugin {
 
     /**
      * The most recently installed version of this plugin, used to trigger whether to re-evaluate installing/upgrading
-     * the {@link #CLOUDBEES_FREE_PLUGINS}.
+     * the {@link #CLOUDBEES_PLUGINS}.
      */
     private String installedVersion = null;
 
@@ -352,7 +352,7 @@ public class PluginImpl extends Plugin {
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
-            for (Dependency pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
+            for (Dependency pluginArtifactId : CLOUDBEES_PLUGINS) {
                 if (pluginArtifactId.mandatory) {
                     LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
                     PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
@@ -369,7 +369,7 @@ public class PluginImpl extends Plugin {
             LOGGER.info("Core plugins installation previously completed, will not check or reinstall");
             return;
         }
-        for (Dependency pluginArtifactId : CLOUDBEES_FREE_PLUGINS) {
+        for (Dependency pluginArtifactId : CLOUDBEES_PLUGINS) {
             LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
             PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
             if (plugin == null && !pluginArtifactId.optional) {
