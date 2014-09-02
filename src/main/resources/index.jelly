@@ -2,7 +2,7 @@
   This plugin converts an OSS installation to a Jenkins Enterprise by CloudBees (JEBC) installation. JEBC has dozen+
   plugins that address issues in enterprise installations. Plugins include folders, validate merges, templates,
   roles-based access control, backup plugins and others (
-  <a href="http://www.cloudbees.com/jenkins-enterprise-by-cloudbees-available-plugins.cb">complete list</a>).
+  <a href="http://www.cloudbees.com/products/jenkins-enterprise/plugins">complete list</a>).
   Additionally, you can use the HA component to make Jenkins highly available.<br />
   <b>Note:</b> As part of the installation process, you will require a valid license to use the CloudBees Enterprise
   plugins. An evaluation license can be obtained automatically. Once the evaluation license expires, you must either
