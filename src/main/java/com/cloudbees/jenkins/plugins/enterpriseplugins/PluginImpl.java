@@ -97,6 +97,8 @@ public class PluginImpl extends Plugin {
             "ichci"
     ));
 
+    private static final String UC_CONFIGURED_MILESTONE = "cloudbees-enterprise-update-center-configured";
+
     /**
      * The plugins that can and/or should be installed/upgraded.
      */
@@ -265,7 +267,7 @@ public class PluginImpl extends Plugin {
         return statusImportant;
     }
 
-    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = "cloudbees-enterprise-update-center-configured")
+    @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED, attains = UC_CONFIGURED_MILESTONE)
     public static void addUpdateCenter() throws Exception {
         LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
         UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
@@ -345,7 +347,7 @@ public class PluginImpl extends Plugin {
         }
     }
 
-    @Initializer(requires = "cloudbees-enterprise-update-center-configured")
+    @Initializer(requires = UC_CONFIGURED_MILESTONE)
     public static void installCorePlugins() {
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
