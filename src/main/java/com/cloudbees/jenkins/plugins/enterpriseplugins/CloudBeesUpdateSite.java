@@ -24,20 +24,25 @@
 package com.cloudbees.jenkins.plugins.enterpriseplugins;
 
 import com.trilead.ssh2.crypto.Base64;
+import hudson.ProxyConfiguration;
 import hudson.model.Hudson;
 import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.util.FormValidation;
 import hudson.util.TextFile;
 import jenkins.model.Jenkins;
+import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.jvnet.hudson.crypto.CertificateUtil;
 import org.jvnet.hudson.crypto.SignatureOutputStream;
+import org.kohsuke.accmod.Restricted;
+import org.kohsuke.accmod.restrictions.NoExternalUse;
 import org.kohsuke.stapler.StaplerRequest;
 
+import javax.annotation.Nonnull;
 import javax.servlet.ServletContext;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -47,6 +52,8 @@ import java.io.ObjectStreamException;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.security.DigestOutputStream;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
@@ -391,6 +398,56 @@ public class CloudBeesUpdateSite extends UpdateSite {
         } finally {
             IOUtils.closeQuietly(stream);
         }
+    }
+
+    // TODO remove once baseline version of Jenkins contains 86ea65ab6fe768e7fb97782d3e20b44494bdba6c
+    @Restricted(NoExternalUse.class)
+    @Nonnull
+    public FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
+        URL src = new URL(getUrl() + "?id=" + URLEncoder.encode(getId(), "UTF-8") + "&version=" + URLEncoder
+                                .encode(Jenkins.VERSION, "UTF-8"));
+        InputStream is = ProxyConfiguration.open(src).getInputStream();
+        try {
+            String jsonp = IOUtils.toString(is, "UTF-8");
+            int start = jsonp.indexOf('{');
+            int end = jsonp.lastIndexOf('}');
+            if (start >= 0 && end > start) {
+                return updateData(jsonp.substring(start, end + 1), signatureCheck);
+            } else {
+                throw new IOException("Could not find JSON in " + src);
+            }
+        } finally {
+            is.close();
+        }
+    }
+
+    private FormValidation updateData(String json, boolean signatureCheck)
+            throws IOException {
+
+        dataTimestamp = System.currentTimeMillis();
+
+        JSONObject o = JSONObject.fromObject(json);
+
+        try {
+            int v = o.getInt("updateCenterVersion");
+            if (v != 1) {
+                throw new IllegalArgumentException("Unrecognized update center version: " + v);
+            }
+        } catch (JSONException x) {
+            throw new IllegalArgumentException("Could not find (numeric) updateCenterVersion in " + json, x);
+        }
+
+        if (signatureCheck) {
+            FormValidation e = verifySignature(o);
+            if (e.kind!= FormValidation.Kind.OK) {
+                LOGGER.severe(e.toString());
+                return e;
+            }
+        }
+
+        LOGGER.info("Obtained the latest update center data file for UpdateSource " + getId());
+        getDataFile().write(json);
+        return FormValidation.ok();
     }
 
 }
