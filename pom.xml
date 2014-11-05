@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>cloudbees-enterprise-plugins</artifactId>
-  <version>14.8.0</version>
+  <version>14.8.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Install Jenkins Enterprise by CloudBees</name>
@@ -71,7 +71,7 @@
     <connection>scm:git:git://github.com/jenkinsci/cloudbees-enterprise-plugins-plugin.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/cloudbees-enterprise-plugins-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/cloudbees-enterprise-plugins-plugin</url>
-    <tag>cloudbees-enterprise-plugins-14.8.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <properties>
