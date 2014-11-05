@@ -42,14 +42,21 @@
                         <j:out value="${%blurb.minimal}"/>
                     </p>
                     <form method="POST" action="install">
-                        <input type="hidden" name="full" value="false"/>
+                        <input type="hidden" name="installMode" value="MINIMAL"/>
                         <f:submit value="${%Install license only}"/>
+                    </form>
+                    <p>
+                        <j:out value="${%blurb.oc}"/>
+                    </p>
+                    <form method="POST" action="install">
+                        <input type="hidden" name="installMode" value="OC"/>
+                        <f:submit value="${%Install Operations Center client only}"/>
                     </form>
                     <p>
                         <j:out value="${%blurb.full}"/>
                     </p>
                     <form method="POST" action="install">
-                        <input type="hidden" name="full" value="true"/>
+                        <input type="hidden" name="installMode" value="FULL"/>
                         <f:submit value="${%Install everything}"/>
                     </form>
                 </j:otherwise>

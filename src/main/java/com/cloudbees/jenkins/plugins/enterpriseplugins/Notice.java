@@ -60,9 +60,9 @@ public class Notice extends ManagementLink {
     }
 
     @RequirePOST
-    public HttpResponse doInstall(@QueryParameter boolean full) throws Exception {
+    public HttpResponse doInstall(@QueryParameter PluginImpl.InstallMode installMode) throws Exception {
         Jenkins.getInstance().checkPermission(Jenkins.ADMINISTER);
-        PluginImpl.installPlugins(full);
+        PluginImpl.installPlugins(installMode);
         return HttpResponses.redirectToDot();
     }
 

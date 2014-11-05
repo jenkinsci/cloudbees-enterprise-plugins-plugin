@@ -7,4 +7,5 @@
   <b>Note:</b> As part of the installation process, you will require a valid license to use the CloudBees Enterprise
   plugins. An evaluation license can be obtained automatically. Once the evaluation license expires, you must either
   obtain a full license OR uninstall the plugins requiring such a license.
+  You also have the option of receiving a license from a Jenkins Operations Center by CloudBees server.
 </div>

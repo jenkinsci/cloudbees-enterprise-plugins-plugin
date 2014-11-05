@@ -94,12 +94,15 @@ public class PluginImpl extends Plugin {
     private static final Dependency ASYNC_HTTP_CLIENT = require("async-http-client","1.7.8");
     private static final Dependency CLOUDBEES_LICENSE = require("cloudbees-license", "5.3");
     private static final Dependency NECTAR_LICENSE = require("nectar-license","5.4");
-    private static final Dependency[] CLOUDBEES_PLUGINS_MINIMAL = {ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE};
-
-    /**
-     * The plugins that can and/or should be installed/upgraded.
-     */
-    private static final Dependency[] CLOUDBEES_PLUGINS = {
+    private static final Dependency OC_AGENT = require("operations-center-agent","1.5");
+    private static final Dependency OC_CONTEXT = require("operations-center-context","1.5");
+    private static final Dependency OC_CLIENT = require("operations-center-client","1.5.1");
+    private static final Dependency OC_CLOUD = require("operations-center-cloud","1.5");
+    private static final Dependency OC_OPENID_CSE = require("operations-center-openid-cse","1.1");
+    public enum InstallMode {
+        MINIMAL(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE),
+        OC(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE, OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD, OC_OPENID_CSE),
+        FULL(
             require("metrics","3.0.5"), // put this first
             require("support-core","2.6"), // put this second
             CLOUDBEES_LICENSE, // put this third
@@ -157,12 +160,16 @@ public class PluginImpl extends Plugin {
             require("cloudbees-quiet-start","1.0"),
             optional("cloudbees-long-running-build","1.0-beta-2"),
             require("cloudbees-monitoring","1.7"),
-            require("operations-center-agent","1.5"),
-            require("operations-center-context","1.5"),
-            require("operations-center-client","1.5.1"),
-            require("operations-center-cloud","1.5"),
-            require("operations-center-openid-cse","1.1"),
-    };
+            OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD, OC_OPENID_CSE
+        );
+        /**
+         * The plugins that can and/or should be installed/upgraded.
+         */
+        public final Dependency[] dependencies;
+        private InstallMode(Dependency... dependencies) {
+            this.dependencies = dependencies;
+        }
+    }
 
     /**
      * The list of plugin installations that remains to be completed.
@@ -346,7 +353,7 @@ public class PluginImpl extends Plugin {
     public static boolean isEverythingInstalled() {
         PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
-            for (Dependency pluginArtifactId : CLOUDBEES_PLUGINS) {
+            for (Dependency pluginArtifactId : InstallMode.FULL.dependencies) {
                 if (pluginArtifactId.mandatory) {
                     LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
                     PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
@@ -361,10 +368,10 @@ public class PluginImpl extends Plugin {
         }
     }
 
-    public static void installPlugins(boolean full) throws Exception {
+    public static void installPlugins(InstallMode installMode) throws Exception {
         addUpdateCenter();
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
-        for (Dependency pluginArtifactId : full ? CLOUDBEES_PLUGINS : CLOUDBEES_PLUGINS_MINIMAL) {
+        for (Dependency pluginArtifactId : installMode.dependencies) {
             LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
             PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
             if (plugin == null && !pluginArtifactId.optional) {
