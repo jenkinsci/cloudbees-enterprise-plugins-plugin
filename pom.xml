@@ -34,7 +34,7 @@
   </parent>
 
   <artifactId>cloudbees-enterprise-plugins</artifactId>
-  <version>14.11.0</version>
+  <version>14.11.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Install Jenkins Enterprise by CloudBees</name>
