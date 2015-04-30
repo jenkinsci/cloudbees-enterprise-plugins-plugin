@@ -28,7 +28,7 @@ require 'nokogiri'
 require 'open-uri'
 
 if !ARGV[0]
-  puts "Please provide the path to the Jenkins Enterprise WAR pom.xml as the first and only argument"
+  puts "Please provide the path to the CloudBees Jenkins Enterprise WAR pom.xml as the first and only argument"
   exit 1
 end
 
