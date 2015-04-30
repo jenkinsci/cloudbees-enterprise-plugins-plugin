@@ -1,7 +1,7 @@
-Jenkins Enterprise by CloudBees Plugin
+CloudBees Jenkins Enterprise Plugin
 ======================================
 
-Read more: [https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Enterprise+by+CloudBees](https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Enterprise+by+CloudBees)
+Read more: https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Jenkins+Enterprise
 
 Development
 ===========

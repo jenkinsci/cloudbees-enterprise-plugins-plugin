@@ -37,17 +37,17 @@
   <version>14.11.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
-  <name>Install Jenkins Enterprise by CloudBees</name>
+  <name>Install CloudBees Jenkins Enterprise</name>
   <description>
-    This plugin converts an OSS installation to a Jenkins Enterprise by CloudBees (JEBC) installation. JEBC has dozen+
+    This plugin converts an OSS installation to a CloudBees Jenkins Enterprise (CBJE) installation. CBJE has dozen+
     plugins that address issues in enterprise installations. Plugins include folders, validate merges, templates,
     roles-based access control, backup plugins and others. Additionally, you can use the HA component to make Jenkins
     highly available.
-    Note: As part of the installation process, you will require a valid license to use the CloudBees Enterprise plugins.
+    Note: As part of the installation process, you will require a valid license to use the CloudBees Jenkins Enterprise plugins.
     An evaluation license can be obtained automatically. Once the evaluation license expires, you must either obtain a
     full license OR uninstall the plugins requiring such a license.
   </description>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Jenkins+Enterprise+by+CloudBees</url>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/CloudBees+Jenkins+Enterprise</url>
   <licenses>
     <license>
       <name>The MIT license</name>

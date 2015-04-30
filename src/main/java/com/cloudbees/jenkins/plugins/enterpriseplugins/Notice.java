@@ -48,7 +48,7 @@ public class Notice extends ManagementLink {
     }
 
     @Override public String getUrlName() {
-        return "installJEbC";
+        return "install-cloudbees-enterprise-plugins";
     }
 
     @Override public String getDisplayName() {
