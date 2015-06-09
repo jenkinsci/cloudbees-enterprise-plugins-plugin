@@ -400,7 +400,7 @@ public class CloudBeesUpdateSite extends UpdateSite {
         }
     }
 
-    // TODO remove once baseline version of Jenkins contains 86ea65ab6fe768e7fb97782d3e20b44494bdba6c
+    // TODO remove in 1.588+ (86ea65ab6fe768e7fb97782d3e20b44494bdba6c)
     @Restricted(NoExternalUse.class)
     @Nonnull
     public FormValidation updateDirectlyNow(boolean signatureCheck) throws IOException {
