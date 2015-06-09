@@ -25,8 +25,6 @@ package com.cloudbees.jenkins.plugins.enterpriseplugins;
 
 import com.trilead.ssh2.crypto.Base64;
 import hudson.ProxyConfiguration;
-import hudson.model.Hudson;
-import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.util.FormValidation;
 import hudson.util.TextFile;
@@ -210,7 +208,7 @@ public class CloudBeesUpdateSite extends UpdateSite {
         } catch (Throwable e) {
             // ignore
         }
-        return new TextFile(new File(Hudson.getInstance().getRootDir(), "updates/" + getId() + ".json"));
+        return new TextFile(new File(Jenkins.getInstance().getRootDir(), "updates/" + getId() + ".json"));
     }
 
     /**
@@ -296,7 +294,7 @@ public class CloudBeesUpdateSite extends UpdateSite {
 
                 // all default root CAs in JVM are trusted, plus certs bundled in Jenkins
                 Set<TrustAnchor> anchors = new HashSet<TrustAnchor>(); // CertificateUtil.getDefaultRootCAs();
-                ServletContext context = Hudson.getInstance().servletContext;
+                ServletContext context = Jenkins.getInstance().servletContext;
                 anchors.add(new TrustAnchor(loadLicenseCaCertificate(), null));
                 for (String cert : (Set<String>) context.getResourcePaths("/WEB-INF/update-center-rootCAs")) {
                     if (cert.endsWith(".txt")) {

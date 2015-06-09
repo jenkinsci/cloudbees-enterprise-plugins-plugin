@@ -29,7 +29,6 @@ import hudson.PluginWrapper;
 import hudson.init.InitMilestone;
 import hudson.init.Initializer;
 import hudson.lifecycle.RestartNotSupportedException;
-import hudson.model.Hudson;
 import hudson.model.UpdateCenter;
 import hudson.model.UpdateSite;
 import hudson.security.ACL;
@@ -243,7 +242,7 @@ public class PluginImpl extends Plugin {
             return false;
         }
         try {
-            PluginWrapper pluginWrapper = Hudson.getInstance().getPluginManager().getPlugin(getClass());
+            PluginWrapper pluginWrapper = Jenkins.getInstance().getPluginManager().getPlugin(getClass());
             String targetVersion = getVersionString(pluginWrapper);
             LOGGER.log(Level.FINE, "Installed version = {0}. Target version = {1}",
                     new Object[]{installedVersion, targetVersion});
@@ -257,7 +256,7 @@ public class PluginImpl extends Plugin {
     public void setInstalled(boolean installed) {
         boolean changed = false;
         if (installed) {
-            PluginWrapper pluginWrapper = Hudson.getInstance().getPluginManager().getPlugin(getClass());
+            PluginWrapper pluginWrapper = Jenkins.getInstance().getPluginManager().getPlugin(getClass());
             String version = getVersionString(pluginWrapper);
             if (!version.equals(installedVersion)) {
                 this.installedVersion = version;
@@ -295,7 +294,7 @@ public class PluginImpl extends Plugin {
     @Initializer(after = InitMilestone.EXTENSIONS_AUGMENTED)
     public static void removeUpdateCenter() throws Exception {
         LOGGER.log(Level.FINE, "Checking whether the official CloudBees update center has been configured.");
-        UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
+        UpdateCenter updateCenter = Jenkins.getInstance().getUpdateCenter();
         synchronized (updateCenter) {
             PersistedList<UpdateSite> sites = updateCenter.getSites();
             PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin("nectar-license");
@@ -326,7 +325,7 @@ public class PluginImpl extends Plugin {
     private static void addUpdateCenter() throws Exception {
         status = Messages._Notice_downloadUCMetadata();
         LOGGER.log(Level.FINE, "Checking that the CloudBees update center has been configured.");
-        UpdateCenter updateCenter = Hudson.getInstance().getUpdateCenter();
+        UpdateCenter updateCenter = Jenkins.getInstance().getUpdateCenter();
         synchronized (updateCenter) {
             PersistedList<UpdateSite> sites = updateCenter.getSites();
                 if (sites.isEmpty()) {
@@ -381,12 +380,12 @@ public class PluginImpl extends Plugin {
     }
 
     public static boolean isEverythingInstalled() {
-        PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+        PluginImpl instance = Jenkins.getInstance().getPlugin(PluginImpl.class);
         if (instance != null && instance.isInstalled()) {
             for (Dependency pluginArtifactId : InstallMode.FULL.dependencies) {
                 if (pluginArtifactId.mandatory) {
                     LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
-                    PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+                    PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
                     if (plugin == null) {
                         return false;
                     }
@@ -403,7 +402,7 @@ public class PluginImpl extends Plugin {
         LOGGER.log(Level.INFO, "Checking that the CloudBees plugins have been installed.");
         for (Dependency pluginArtifactId : installMode.dependencies) {
             LOGGER.log(Level.FINE, "Checking {0}.", pluginArtifactId.name);
-            PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+            PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
             if (plugin == null && !pluginArtifactId.optional) {
                 // not installed and mandatory
                 scheduleInstall(pluginArtifactId);
@@ -437,7 +436,7 @@ public class PluginImpl extends Plugin {
                 LOGGER.log(Level.INFO, "Nothing to do");
             }
         }
-        PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+        PluginImpl instance = Jenkins.getInstance().getPlugin(PluginImpl.class);
         if (finished && instance != null) {
             instance.setInstalled(true);
         }
@@ -463,7 +462,7 @@ public class PluginImpl extends Plugin {
                     LOGGER.fine("Background thread for core plugin installation awake");
                     try {
                         UpdateSite cloudbeesSite =
-                                Hudson.getInstance().getUpdateCenter().getSite(CLOUDBEES_UPDATE_CENTER_ID);
+                                Jenkins.getInstance().getUpdateCenter().getSite(CLOUDBEES_UPDATE_CENTER_ID);
                         if (cloudbeesSite.getDataTimestamp() > -1) {
                             loop = progressPluginInstalls(cloudbeesSite);
                         } else {
@@ -489,7 +488,7 @@ public class PluginImpl extends Plugin {
                         } catch (InterruptedException e) {
                             // ignore
                         }
-                        Hudson.getInstance().safeRestart();
+                        Jenkins.getInstance().safeRestart();
                         // if the user manually cancelled the quiet down, reflect that in the status message
                         Trigger.timer.scheduleAtFixedRate(new SafeTimerTask() {
                             @Override
@@ -513,7 +512,7 @@ public class PluginImpl extends Plugin {
                     }
                     finished = pendingPluginInstalls.isEmpty();
                 }
-                PluginImpl instance = Hudson.getInstance().getPlugin(PluginImpl.class);
+                PluginImpl instance = Jenkins.getInstance().getPlugin(PluginImpl.class);
                 if (finished && instance != null) {
                     instance.setInstalled(true);
                 }
@@ -524,7 +523,7 @@ public class PluginImpl extends Plugin {
             synchronized (pendingPluginInstalls) {
                 while (!pendingPluginInstalls.isEmpty()) {
                     Dependency pluginArtifactId = pendingPluginInstalls.get(0);
-                    UpdateSite.Plugin p = Hudson.getInstance()
+                    UpdateSite.Plugin p = Jenkins.getInstance()
                             .getUpdateCenter()
                             .getSite(CLOUDBEES_UPDATE_CENTER_ID)
                             .getPlugin(pluginArtifactId.name);
@@ -538,7 +537,7 @@ public class PluginImpl extends Plugin {
                         }
                         break;
                     } else if (p.getInstalled() != null && p.getInstalled().isEnabled()) {
-                        PluginWrapper plugin = Hudson.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
+                        PluginWrapper plugin = Jenkins.getInstance().getPluginManager().getPlugin(pluginArtifactId.name);
                         if (plugin != null && plugin.getVersionNumber().compareTo(pluginArtifactId.version) < 0) {
                             LOGGER.info("Upgrading CloudBees plugin: " + pluginArtifactId.name);
                             status = Messages._Notice_upgradingPlugin(p.getDisplayName(), p.version);
