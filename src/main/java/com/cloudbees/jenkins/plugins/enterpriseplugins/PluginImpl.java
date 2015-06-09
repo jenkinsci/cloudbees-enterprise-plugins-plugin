@@ -34,6 +34,7 @@ import hudson.model.UpdateSite;
 import hudson.security.ACL;
 import hudson.triggers.SafeTimerTask;
 import hudson.triggers.Trigger;
+import hudson.util.FormValidation;
 import hudson.util.PersistedList;
 import hudson.util.TimeUnit2;
 import hudson.util.VersionNumber;
@@ -374,6 +375,12 @@ public class PluginImpl extends Plugin {
                         }
                     } finally {
                         bc.commit();
+                    }
+                    LOGGER.info("Refreshing modified update center list");
+                    for (FormValidation result : updateCenter.updateAllSites()) {
+                        if (result.kind != FormValidation.Kind.OK) {
+                            LOGGER.log(Level.WARNING, "Failed to refresh update center: {0}", result);
+                        }
                     }
                 }
             }
