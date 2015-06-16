@@ -93,105 +93,114 @@ public class PluginImpl extends Plugin {
     ));
 
     private static final Dependency ASYNC_HTTP_CLIENT = require("async-http-client","1.7.8");
-    private static final Dependency CLOUDBEES_LICENSE = require("cloudbees-license", "6.0");
-    private static final Dependency NECTAR_LICENSE = require("nectar-license","6.0");
-    private static final Dependency OC_AGENT = require("operations-center-agent","1.6");
-    private static final Dependency OC_ANALYTICS = require("operations-center-analytics-reporter","1.6");
-    private static final Dependency OC_CONTEXT = require("operations-center-context","1.6");
-    private static final Dependency OC_CLIENT = require("operations-center-client","1.6");
-    private static final Dependency OC_CLOUD = require("operations-center-cloud","1.6");
-    private static final Dependency OC_OPENID_CSE = require("operations-center-openid-cse","1.6");
-    private static final String WORKFLOW_VERSION = "1.0";
-    private static final String CLOUDBEES_WORKFLOW_VERSION = "1.0";
+    private static final Dependency CLOUDBEES_LICENSE = require("cloudbees-license", "7.1");
+    private static final Dependency NECTAR_LICENSE = require("nectar-license","7.1");
+    private static final String CJOC_VERSION = "1.7.0";
+    private static final Dependency OC_AGENT = require("operations-center-agent", CJOC_VERSION);
+    private static final Dependency OC_ANALYTICS = require("operations-center-analytics-reporter", CJOC_VERSION);
+    private static final Dependency OC_CONTEXT = require("operations-center-context", CJOC_VERSION);
+    private static final Dependency OC_CLIENT = require("operations-center-client", CJOC_VERSION);
+    private static final Dependency OC_CLOUD = require("operations-center-cloud", CJOC_VERSION);
+    private static final Dependency OC_OPENID_CSE = require("operations-center-openid-cse", CJOC_VERSION);
+    private static final String WORKFLOW_VERSION = "1.8";
+    private static final String CLOUDBEES_WORKFLOW_VERSION = "1.3";
 
     public enum InstallMode {
         MINIMAL(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE),
         OC(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE, OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD,
                 OC_OPENID_CSE, OC_ANALYTICS),
         FULL(
-            require("metrics","3.0.9"), // put this first
-            require("support-core","2.18"), // put this second
+            require("metrics","3.0.11"), // put this first
+            require("support-core","2.25"), // put this second
             CLOUDBEES_LICENSE, // put this third
-            require("cloudbees-support", "3.1"), // put this forth
-            require("maven-plugin","2.7.1"),
-            require("active-directory","1.38"),
-            require("build-timeout","1.14"),
-            require("copyartifact","1.32.1"),
-            require("dashboard-view","2.9.4"),
-            require("parameterized-trigger","2.25"),
-            require("promoted-builds","2.19"),
-            require("translation","1.12"),
+            require("cloudbees-support", "3.3"), // put this fourth
             ASYNC_HTTP_CLIENT,
-            require("credentials","1.18"),
-            require("ssh-credentials","1.10"),
-            require("ssh-slaves","1.9"),
-            require("git","2.3"),
-            require("git-client","1.11.1"),
-            require("ssh-agent","1.5"),
-            require("mercurial","1.51"),
-            require("monitoring","1.53.1"),
-            require("build-view-column","0.2"),
-            require("suppress-stack-trace","1.3"),
-            require("cloudbees-folder","4.7"),
-            require("scm-api","0.2"),
-            require("openid","2.1.1"),
-            require("openid4java","0.9.8.0"),
-            require("node-iterator-api","1.5"),
-            require("script-security","1.10"),
-            require("ldap","1.11"),
-            require("durable-task","0.7"),
+            NECTAR_LICENSE,
+            OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD, OC_OPENID_CSE, OC_ANALYTICS,
             require("workflow-aggregator", WORKFLOW_VERSION),
-            require("workflow-step-api", WORKFLOW_VERSION),
             require("workflow-api", WORKFLOW_VERSION),
-            require("workflow-support", WORKFLOW_VERSION),
-            require("workflow-durable-task-step", WORKFLOW_VERSION),
-            require("workflow-scm-step", WORKFLOW_VERSION),
+            require("workflow-basic-steps", WORKFLOW_VERSION),
             require("workflow-cps", WORKFLOW_VERSION),
             require("workflow-cps-global-lib", WORKFLOW_VERSION),
+            require("workflow-durable-task-step", WORKFLOW_VERSION),
             require("workflow-job", WORKFLOW_VERSION),
-            require("workflow-basic-steps", WORKFLOW_VERSION),
-            require("javadoc","1.3"),
-            require("mailer","1.12"),
-            require("junit","1.2"),
-            require("github-api","1.59"),
-            require("github","1.10"),
-            require("matrix-auth","1.2"),
-            require("antisamy-markup-formatter","1.3"),
-            require("token-macro","1.10"),
-            require("external-monitor-job","1.4"),
-            require("pam-auth","1.2"),
-            require("matrix-project","1.4"),
-            NECTAR_LICENSE,
-            require("infradna-backup","3.20"),
-            require("nectar-vmware","4.3.2"),
-            require("nectar-rbac","4.12"),
-            require("cloudbees-folders-plus","2.10"),
-            require("wikitext","3.6"),
-            require("cloudbees-template","4.15"),
-            require("skip-plugin","3.6"),
-            require("cloudbees-even-scheduler","3.5"),
-            require("cloudbees-secure-copy","3.7"),
-            require("cloudbees-wasted-minutes-tracker","3.7"),
-            require("git-validated-merge","3.17"),
-            require("cloudbees-jsync-archiver","5.3"),
-            require("cloudbees-ha"),
-            require("cloudbees-label-throttling-plugin","3.4"),
-            require("cloudbees-plugin-usage","1.4"),
-            require("cloudbees-nodes-plus","1.10"),
-            require("cloudbees-aborted-builds","1.6"),
-            require("cloudbees-consolidated-build-view","1.3"),
-            require("cloudbees-view-creation-filter","1.1"),
-            require("cloudbees-ssh-slaves","1.2"),
-            require("cloudbees-quiet-start","1.1"),
-            require("cloudbees-long-running-build","1.1"),
-            require("cloudbees-monitoring","1.7"),
-            require("github-pull-request-build","1.4"),
-            require("cloudbees-groovy-view","1.4"),
-            OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD, OC_OPENID_CSE, OC_ANALYTICS,
+            require("workflow-scm-step", WORKFLOW_VERSION),
+            require("workflow-step-api", WORKFLOW_VERSION),
+            require("workflow-support", WORKFLOW_VERSION),
             require("cloudbees-workflow-aggregator", CLOUDBEES_WORKFLOW_VERSION),
-            require("workflow-cps-checkpoint", CLOUDBEES_WORKFLOW_VERSION),
             require("cloudbees-workflow-rest-api", CLOUDBEES_WORKFLOW_VERSION),
-            require("cloudbees-workflow-ui", CLOUDBEES_WORKFLOW_VERSION)
+            require("cloudbees-workflow-template", CLOUDBEES_WORKFLOW_VERSION),
+            require("cloudbees-workflow-ui", CLOUDBEES_WORKFLOW_VERSION),
+            require("workflow-cps-checkpoint", CLOUDBEES_WORKFLOW_VERSION),
+            require("cloudbees-ha","4.6"),
+            // The rest can be generated by list-enterprise-plugins.rb:
+            require("cloudbees-aborted-builds","1.6"),
+            require("cloudbees-aws-cli","1.4"),
+            require("cloudbees-aws-credentials","1.7"),
+            require("cloudbees-aws-deployer","1.13"),
+            require("cloudbees-consolidated-build-view","1.4"),
+            require("cloudbees-even-scheduler","3.5"),
+            require("cloudbees-folder","4.8"),
+            require("cloudbees-folders-plus","2.10"),
+            require("cloudbees-groovy-view","1.4"),
+            require("cloudbees-jsync-archiver","5.4"),
+            require("cloudbees-label-throttling-plugin","3.4"),
+            require("cloudbees-long-running-build","1.4"),
+            require("cloudbees-monitoring","1.7"),
+            require("cloudbees-nodes-plus","1.11"),
+            require("cloudbees-plugin-usage","1.5"),
+            require("cloudbees-quiet-start","1.1"),
+            require("cloudbees-secure-copy","3.7"),
+            require("cloudbees-ssh-slaves","1.2"),
+            require("cloudbees-template","4.17"),
+            require("cloudbees-view-creation-filter","1.2"),
+            require("cloudbees-wasted-minutes-tracker","3.7"),
+            require("copyartifact","1.35.1"),
+            require("credentials","1.22"),
+            require("dashboard-view","2.9.4"),
+            require("docker-build-publish","1.0"),
+            require("docker-commons","1.0"),
+            require("docker-traceability","1.0"),
+            require("docker-workflow","1.0"),
+            require("dockerhub-notification","1.0.2"),
+            require("durable-task","1.5"),
+            require("external-monitor-job","1.4"),
+            require("git","2.3.5"),
+            require("git-client","1.17.1"),
+            require("git-server","1.6"),
+            require("git-validated-merge","3.18"),
+            require("github","1.11.3"),
+            require("github-api","1.68"),
+            require("github-pull-request-build","1.6"),
+            require("infradna-backup","3.20"),
+            require("javadoc","1.3"),
+            require("junit","1.6"),
+            require("ldap","1.11"),
+            require("mailer","1.15"),
+            require("matrix-auth","1.2"),
+            require("matrix-project","1.5"),
+            require("maven-plugin","2.10"),
+            require("mercurial","1.52"),
+            require("monitoring","1.56.0"),
+            require("nectar-rbac","4.15"),
+            require("nectar-vmware","4.3.4"),
+            require("node-iterator-api","1.5"),
+            require("openid","2.1.1"),
+            require("openid4java","0.9.8.0"),
+            require("pam-auth","1.2"),
+            require("parameterized-trigger","2.26"),
+            require("promoted-builds","2.21"),
+            require("scm-api","0.2"),
+            require("script-security","1.14"),
+            require("skip-plugin","3.6"),
+            require("ssh-agent","1.7"),
+            require("ssh-credentials","1.11"),
+            require("ssh-slaves","1.9"),
+            require("suppress-stack-trace","1.3"),
+            require("token-macro","1.10"),
+            require("translation","1.12"),
+            require("unique-id","2.0.2"),
+            require("wikitext","3.6")
         );
         /**
          * The plugins that can and/or should be installed/upgraded.
