@@ -50,6 +50,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.CheckForNull;
 import jenkins.util.Timer;
 import org.acegisecurity.context.SecurityContext;
 
@@ -95,6 +96,7 @@ public class PluginImpl extends Plugin {
     private static final Dependency ASYNC_HTTP_CLIENT = require("async-http-client","1.7.8");
     private static final Dependency CLOUDBEES_LICENSE = require("cloudbees-license", "7.1");
     private static final Dependency NECTAR_LICENSE = require("nectar-license","7.1");
+    private static final Dependency FREE_LICENSE = optional("free-license", "7.0");
     private static final String CJOC_VERSION = "1.7.0";
     private static final Dependency OC_AGENT = require("operations-center-agent", CJOC_VERSION);
     private static final Dependency OC_ANALYTICS = require("operations-center-analytics-reporter", CJOC_VERSION);
@@ -106,8 +108,8 @@ public class PluginImpl extends Plugin {
     private static final String CLOUDBEES_WORKFLOW_VERSION = "1.3";
 
     public enum InstallMode {
-        MINIMAL(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE),
-        OC(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE, OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD,
+        MINIMAL(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE, FREE_LICENSE),
+        OC(ASYNC_HTTP_CLIENT, CLOUDBEES_LICENSE, NECTAR_LICENSE, FREE_LICENSE, OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD,
                 OC_OPENID_CSE, OC_ANALYTICS),
         FULL(
             require("metrics","3.0.11"), // put this first
@@ -116,6 +118,7 @@ public class PluginImpl extends Plugin {
             require("cloudbees-support", "3.3"), // put this fourth
             ASYNC_HTTP_CLIENT,
             NECTAR_LICENSE,
+            FREE_LICENSE,
             OC_AGENT, OC_CONTEXT, OC_CLIENT, OC_CLOUD, OC_OPENID_CSE, OC_ANALYTICS,
             require("workflow-aggregator", WORKFLOW_VERSION),
             require("workflow-api", WORKFLOW_VERSION),
@@ -617,12 +620,7 @@ public class PluginImpl extends Plugin {
         return new Dependency(name, version, false, true);
     }
 
-    // TODO seems we have no optional plugins; could this logic just be deleted?
-    private static Dependency optional(String name) {
-        return optional(name, null);
-    }
-
-    private static Dependency optional(String name, String version) {
+    private static Dependency optional(String name, @CheckForNull String version) {
         return new Dependency(name, version, true, false);
     }
 
