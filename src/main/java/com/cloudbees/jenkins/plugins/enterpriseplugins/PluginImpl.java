@@ -184,7 +184,6 @@ public class PluginImpl extends Plugin {
             require("matrix-project","1.5"),
             require("maven-plugin","2.10"),
             require("mercurial","1.52"),
-            require("monitoring","1.56.0"),
             require("nectar-rbac","4.15"),
             require("nectar-vmware","4.3.4"),
             require("node-iterator-api","1.5"),
